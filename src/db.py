@@ -37,7 +37,7 @@ class DBManager(object):
                   "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))"
                  ]
         
-        con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
+        con = sqlite.connect(cfg.get("general", "repository") + "/.store.db")
         cursor = con.cursor()
 
         for item in tables:
