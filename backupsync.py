@@ -10,6 +10,7 @@ License       GPL version 2 (see GPL.txt for details)
 import ConfigParser
 import os
 import sys
+import src.common as common
 import src.sync as sync
 
 class Main(object):
@@ -37,6 +38,8 @@ class Main(object):
         
         cfg = ConfigParser.ConfigParser()
         cfg.readfp(open(self._cfgfile, "r"))
+
+        common.check_structure(cfg)
         
         s = sync.Sync(cfg)
         
