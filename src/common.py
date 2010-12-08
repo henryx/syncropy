@@ -6,7 +6,6 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
-from sqlite3 import dbapi2 as sqlite
 import hashlib
 import os
 
@@ -30,9 +29,6 @@ def check_structure(cfg):
         os.mkdir(repository + "/month")
         for month in range(cfg.getint("general", "monthly_grace")):
             os.mkdir(repository + "/month/" + str(month+1))
-
-def check_db(cfg):
-    con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
 
 def gethash(filename):
     return hashlib.md5(open(path, "rb").read()).hexdigest()

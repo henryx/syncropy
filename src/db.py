@@ -20,6 +20,7 @@ class DBManager(object):
 
     def _check_schema():
         con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
+        cursor = con.cursor()
         result = cursor.execute("select count(*) from sqlite_master")
         value = result.fetchone()[0]
 
@@ -31,4 +32,17 @@ class DBManager(object):
             return True
 
     def _create_schema(self):
-        pass
+        tables = ["CREATE TABLE files (source VARCHAR(30), hash VARCHAR(32))",
+                  "CREATE TABLE file_path (hash VARCHAR(32), location VARCHAR(1024))",
+                  "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))"
+                 ]
+        
+        con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
+        cursor = con.cursor()
+
+        for item in tables:
+            cursor.execute(item)
+        cursor.close()
+        
+        con.commit()
+        con.close()
