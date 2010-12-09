@@ -7,16 +7,31 @@ License       GPL version 2 (see GPL.txt for details)
 """
 
 import os
+import protocols
 
 class Sync(object):
     _cfg = None
     day = None
     week = None
     month = None
-    
+
     def __init__(self, cfg):
         self.day = False
         self.week = False
         self.month = False
-        
+
         self._cfg = cfg
+
+    def execute(self):
+        protocol = None
+
+        sections = self._cfg.sections()
+
+        sections.remove("general")
+        for item in sections:
+            paths = self._cfg.get(item, "path").split(",")
+
+            if self._cfg.get(item, "type") == "ssh":
+                protocol = protocols.SSH(self._cfg)
+                for path in paths:
+                    protocol.send_cmd("find " + path + " -type f")

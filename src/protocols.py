@@ -11,14 +11,18 @@ import paramiko
 class SSH(object):
     _cfg = None
     _client = None
-    
+    _stdin = None
+    _stdout = None
+    _stderr = None
+
     def __init__(self, cfg):
         self._cfg = cfg
 
     def connect(self, section):
         self._client = paramiko.SSHClient()
         self._client.load_system_host_keys()
-        self._client.connect(hostname=self._cfg.get(section, 'remote_host'),
+        self._client.connect(
+                             hostname=self._cfg.get(section, 'remote_host'),
                              port=self._cfg.get(section, 'remote_port'),
                              username=self._cfg.get(section, 'remote_user'),
                              password=self._cfg.get(section, 'remote_password')
@@ -30,18 +34,18 @@ class SSH(object):
         return sftp.stat(remote)
 
     def send_cmd(self, cmd):
-        stdin, stdout, stderr = self._client.exec_command(cmd)
+        self._stdin, self._stdout, self._stderr = self._client.exec_command(cmd)
 
         error = 0
         errstr = []
-        for value in stderr:
+        for value in self._stderr:
             error = error + 1
             errstr.append(value)
 
         if error > 0:
             for value in errstr:
                 print value
-                
+
             return False
         else:
             return True

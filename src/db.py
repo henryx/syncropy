@@ -26,22 +26,35 @@ class DBManager(object):
 
         cursor.close()
         con.close()
+
         if value == 0:
             return False
         else:
             return True
 
     def _create_schema(self):
-        tables = ["CREATE TABLE files (source VARCHAR(30), hash VARCHAR(32))",
+        tables = [
+                  "CREATE TABLE files (source VARCHAR(30), hash VARCHAR(32), size INTEGER)",
                   "CREATE TABLE file_path (hash VARCHAR(32), location VARCHAR(1024))",
-                  "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))"
+                  "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))",
+                  "CREATE TABLE status (grace VARCHAR(5), actual INTEGER)"
                  ]
-        
+
+        data = [
+                "INSERT INTO status VALUES('day', 0)",
+                "INSERT INTO status VALUES('week', 0)",
+                "INSERT INTO status VALUES('month', 0)"
+               ]
+
         con = sqlite.connect(cfg.get("general", "repository") + "/.store.db")
         cursor = con.cursor()
 
         for item in tables:
             cursor.execute(item)
+
+        for item in data:
+            cursor.execute(item)
+
         cursor.close()
         
         con.commit()
