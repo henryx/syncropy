@@ -40,7 +40,7 @@ class SSH(object):
         errstr = []
         for value in self._stderr:
             error = error + 1
-            errstr.append(value)
+            errstr.append(value.strip("\n"))
 
         if error > 0:
             for value in errstr:
@@ -49,3 +49,6 @@ class SSH(object):
             return False
         else:
             return True
+
+        def get_stdout(self):
+            return self._stdout

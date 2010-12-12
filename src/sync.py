@@ -7,20 +7,25 @@ License       GPL version 2 (see GPL.txt for details)
 """
 
 import os
+import db
 import protocols
 
 class Sync(object):
     _cfg = None
-    day = None
-    week = None
-    month = None
+    mode = None
 
     def __init__(self, cfg):
-        self.day = False
-        self.week = False
-        self.month = False
-
         self._cfg = cfg
+
+    def _get_files(self, stdout):
+        db = db.DBManager(self._cfg)
+
+        con = db.open()
+        for filename in stdout:
+            # TODO: - Check into db if file exist
+            #       - Download file
+            #       - Retrieve file's metadata
+            
 
     def execute(self):
         protocol = None
@@ -35,3 +40,4 @@ class Sync(object):
                 protocol = protocols.SSH(self._cfg)
                 for path in paths:
                     protocol.send_cmd("find " + path + " -type f")
+                    self._get_files(protocol.get_stdout)

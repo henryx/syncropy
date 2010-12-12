@@ -15,11 +15,15 @@ import src.sync as sync
 
 class Main(object):
     _cfgfile = None
+    _mode = None
     
     def __init__(self):
         pass
 
     def usage(self):
+        print "Usage:"
+        print "-c<file> or --cfg=<file> Use the specified configuration file"
+        print "-d                       The daily backup is executed"
         sys.exit(0)
     
     def parseopt(self, opt):
@@ -28,7 +32,8 @@ class Main(object):
                 self._cfgfile = opt[6:]
             else:
                 self._cfgfile = opt[2:]
-        
+        elif option in ["-d"]:
+            self._mode = "daily"
         elif option in ["-h", "--help"]:
             self.usage()
 
@@ -42,7 +47,8 @@ class Main(object):
         common.check_structure(cfg)
         
         s = sync.Sync(cfg)
-        
+        s.mode = self._mode
+        s.execute()
 
 if __name__ == "__main__":
     main = Main()

@@ -15,27 +15,23 @@ class DBManager(object):
     def __init__(self, cfg):
         self._cfg = cfg
 
-        if not self._check_schema():
-            self._create_schema()
-
-    def _check_schema():
-        con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
-        cursor = con.cursor()
+    def _check_schema(self, connection):
+        cursor = connection.cursor()
         result = cursor.execute("select count(*) from sqlite_master")
         value = result.fetchone()[0]
 
         cursor.close()
-        con.close()
 
         if value == 0:
             return False
         else:
             return True
 
-    def _create_schema(self):
+    def _create_schema(self, connection):
         tables = [
-                  "CREATE TABLE files (source VARCHAR(30), hash VARCHAR(32), size INTEGER)",
-                  "CREATE TABLE file_path (hash VARCHAR(32), location VARCHAR(1024))",
+                  "CREATE TABLE files (source VARCHAR(30), hash VARCHAR(32))",
+                  "CREATE TABLE original_path (hash VARCHAR(32), location VARCHAR(1024))",
+                  "CREATE TABLE repo_path(hash VARCHAR(32), location VARCHAR(1024))",
                   "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))",
                   "CREATE TABLE status (grace VARCHAR(5), actual INTEGER)"
                  ]
@@ -46,8 +42,7 @@ class DBManager(object):
                 "INSERT INTO status VALUES('month', 0)"
                ]
 
-        con = sqlite.connect(cfg.get("general", "repository") + "/.store.db")
-        cursor = con.cursor()
+        cursor = connection.cursor()
 
         for item in tables:
             cursor.execute(item)
@@ -58,4 +53,11 @@ class DBManager(object):
         cursor.close()
         
         con.commit()
-        con.close()
+
+    def open(self):
+        con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
+
+        if not self._check_schema(con):
+            self._create_schema(con)
+
+        return con
