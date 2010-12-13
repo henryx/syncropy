@@ -52,10 +52,10 @@ class DBManager(object):
 
         cursor.close()
         
-        con.commit()
+        connection.commit()
 
     def open(self):
-        con = sqlite.connect(cfg.get("general", "repository") + "/.store.sb")
+        con = sqlite.connect(self._cfg.get("general", "repository") + "/.store.sb")
 
         if not self._check_schema(con):
             self._create_schema(con)

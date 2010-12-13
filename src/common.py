@@ -6,29 +6,37 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
-import hashlib
 import os
+import src.db
+import src.queries
 
-def check_structure(cfg):
-    repository = cfg.get("general", "repository")
+class Storage(object):
+    _cfg = None
+    mode = None
+    dataset = None
 
-    if not os.path.exists(repository):
-        os.mkdir(repository)
+    def __init__(self, cfg):
+        self._cfg = cfg
+        self._check_structure()
 
-    if not os.path.exists(repository + "/day"):
-        os.mkdir(repository + "/day")
-        for day in range(cfg.getint("general", "daily_grace")):
-            os.mkdir(repository + "/day/" + str(day+1))
+    def _check_structure(self):
+        repository = self._cfg.get("general", "repository")
 
-    if not os.path.exists(repository + "/week"):
-        os.mkdir(repository + "/week")
-        for week in range(cfg.getint("general", "weekly_grace")):
-            os.mkdir(repository + "/week/" + str(week+1))
+        if not os.path.exists(repository):
+            os.mkdir(repository)
+            os.mkdir(repository + "/day")
+            os.mkdir(repository + "/week")
+            os.mkdir(repository + "/month")
 
-    if not os.path.exists(repository + "/month"):
-        os.mkdir(repository + "/month")
-        for month in range(cfg.getint("general", "monthly_grace")):
-            os.mkdir(repository + "/month/" + str(month+1))
-
-def gethash(filename):
-    return hashlib.md5(open(path, "rb").read()).hexdigest()
+    def create_dirs(self, stdout):
+        repository = self._cfg.get("general", "repository")
+        for item in stdout.readlines():
+            if os.path.exists("/".join([repository, self.mode,
+                                        str(self.dataset -1), item.strip("\n")])):
+                os.link("/".join([repository, self.mode,
+                                  str(self.dataset -1), item.strip("\n")]),
+                        "/".join([repository, self.mode,
+                                  str(self.dataset), item].strip("\n")))
+            else:
+                os.makedirs("/".join([repository, self.mode,
+                                    str(self.dataset), item.strip("\n")]))

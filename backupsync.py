@@ -10,8 +10,7 @@ License       GPL version 2 (see GPL.txt for details)
 import ConfigParser
 import os
 import sys
-import src.common as common
-import src.sync as sync
+import src.sync
 
 class Main(object):
     _cfgfile = None
@@ -20,11 +19,11 @@ class Main(object):
     def __init__(self):
         pass
 
-    def usage(self):
+    def usage(self, exit_mode):
         print "Usage:"
         print "-c<file> or --cfg=<file> Use the specified configuration file"
         print "-d                       The daily backup is executed"
-        sys.exit(0)
+        sys.exit(exit_mode)
     
     def parseopt(self, opt):
         if opt.startswith("-c") or opt.startswith("--cfg="):
@@ -32,21 +31,23 @@ class Main(object):
                 self._cfgfile = opt[6:]
             else:
                 self._cfgfile = opt[2:]
-        elif option in ["-d"]:
-            self._mode = "daily"
-        elif option in ["-h", "--help"]:
-            self.usage()
+        elif opt in ["-d"]:
+            self._mode = "day"
+        elif opt in ["-h", "--help"]:
+            self.usage(0)
 
     def start(self):
         if not self._cfgfile:
             self._cfgfile = os.getcwd() + "/backupsync.cfg"
+
+        if not self._mode:
+            print "Backup mode not definied"
+            self.usage(1)
         
         cfg = ConfigParser.ConfigParser()
         cfg.readfp(open(self._cfgfile, "r"))
-
-        common.check_structure(cfg)
         
-        s = sync.Sync(cfg)
+        s = src.sync.Sync(cfg)
         s.mode = self._mode
         s.execute()
 

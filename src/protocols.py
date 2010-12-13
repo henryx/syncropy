@@ -22,10 +22,10 @@ class SSH(object):
         self._client = paramiko.SSHClient()
         self._client.load_system_host_keys()
         self._client.connect(
-                             hostname=self._cfg.get(section, 'remote_host'),
-                             port=self._cfg.get(section, 'remote_port'),
-                             username=self._cfg.get(section, 'remote_user'),
-                             password=self._cfg.get(section, 'remote_password')
+                             hostname=self._cfg.get(section, "remote_host"),
+                             port=self._cfg.getint(section, "remote_port"),
+                             username=self._cfg.get(section, "remote_user"),
+                             password=self._cfg.get(section, "remote_password")
                             )
 
     def get_file(self, remote, local):
@@ -50,5 +50,5 @@ class SSH(object):
         else:
             return True
 
-        def get_stdout(self):
-            return self._stdout
+    def get_stdout(self):
+        return self._stdout
