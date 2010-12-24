@@ -14,21 +14,23 @@ import src.queries
 
 class Sync(object):
     _cfg = None
+    _dbm = None
     mode = None
 
     def __init__(self, cfg):
         self._cfg = cfg
+        self._dbm = src.db.DBManager(self._cfg)
 
     def _last_dataset(self):
-        dbm = src.db.DBManager(self._cfg)
         select = src.queries.Select("?")
+        dataset = 0
 
         select.set_table("status")
         select.set_cols("actual")
         select.set_filter("grace = ?", self.mode)
         select.build()
 
-        con = dbm.open()
+        con = self._dbm.open()
         cur = con.cursor()
         cur.execute(select.get_statement(), select.get_values())
 
@@ -39,9 +41,7 @@ class Sync(object):
         return dataset
 
     def _get_files(self, stdout):
-        db = db.DBManager(self._cfg)
-
-        con = db.open()
+        con = self._dbm.open()
         for filename in stdout:
             # TODO: - Check into db if file exist
             #       - Download file
@@ -65,6 +65,7 @@ class Sync(object):
         sections = self._cfg.sections()
 
         sections.remove("general")
+        sections.remove("database")
         for item in sections:
             paths = self._cfg.get(item, "path").split(",")
 
@@ -73,7 +74,7 @@ class Sync(object):
                 protocol.connect(item)
                 for path in paths:
                     protocol.send_cmd("find " + path + " -type d")
-                    store.create_dirs(protocol.get_stdout())
+                    store.create_dirs(item, protocol.get_stdout())
                     """
                     protocol.send_cmd("find " + path + " -type f")
                     self._get_files(protocol.get_stdout)

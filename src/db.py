@@ -6,19 +6,22 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """ 
 
-from sqlite3 import dbapi2 as sqlite
+import kinterbasdb
 import os
 
 class DBManager(object):
     _cfg = None
-    
+
     def __init__(self, cfg):
         self._cfg = cfg
 
     def _check_schema(self, connection):
         cursor = connection.cursor()
-        result = cursor.execute("select count(*) from sqlite_master")
-        value = result.fetchone()[0]
+        cursor.execute(" ".join(["SELECT COUNT(rdb$relation_name)",
+                                 "FROM rdb$relations WHERE",
+                                 "rdb$relation_name NOT LIKE 'RDB$%'",
+                                 "AND rdb$relation_name NOT LIKE 'MON$%'"]))
+        value = cursor.fetchone()[0]
 
         cursor.close()
 
@@ -46,18 +49,23 @@ class DBManager(object):
 
         for item in tables:
             cursor.execute(item)
+        connection.commit()
 
         for item in data:
             cursor.execute(item)
 
         cursor.close()
-        
+
         connection.commit()
 
     def open(self):
-        con = sqlite.connect(self._cfg.get("general", "repository") + "/.store.sb")
+        connection = kinterbasdb.connect(host=self._cfg.get("database", "host"),
+                                         database=self._cfg.get("database", "name"),
+                                         user=self._cfg.get("database", "user"),
+                                         password=self._cfg.get("database", "password"),
+                                         charset="UTF8")
 
-        if not self._check_schema(con):
-            self._create_schema(con)
+        if not self._check_schema(connection):
+            self._create_schema(connection)
 
-        return con
+        return connection

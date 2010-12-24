@@ -15,7 +15,7 @@ import src.sync
 class Main(object):
     _cfgfile = None
     _mode = None
-    
+
     def __init__(self):
         pass
 
@@ -24,7 +24,7 @@ class Main(object):
         print "-c<file> or --cfg=<file> Use the specified configuration file"
         print "-d                       The daily backup is executed"
         sys.exit(exit_mode)
-    
+
     def parseopt(self, opt):
         if opt.startswith("-c") or opt.startswith("--cfg="):
             if opt[1] == "-":
@@ -43,18 +43,17 @@ class Main(object):
         if not self._mode:
             print "Backup mode not definied"
             self.usage(1)
-        
+
         cfg = ConfigParser.ConfigParser()
         cfg.readfp(open(self._cfgfile, "r"))
-        
+
         s = src.sync.Sync(cfg)
         s.mode = self._mode
         s.execute()
 
 if __name__ == "__main__":
     main = Main()
-    
+
     for item in sys.argv[1:]:
         main.parseopt(item)
     main.start()
-    

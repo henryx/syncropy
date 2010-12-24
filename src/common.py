@@ -28,15 +28,16 @@ class Storage(object):
             os.mkdir(repository + "/week")
             os.mkdir(repository + "/month")
 
-    def create_dirs(self, stdout):
+    def create_dirs(self, section, stdout):
         repository = self._cfg.get("general", "repository")
         for item in stdout.readlines():
-            if os.path.exists("/".join([repository, self.mode,
-                                        str(self.dataset -1), item.strip("\n")])):
-                os.link("/".join([repository, self.mode,
-                                  str(self.dataset -1), item.strip("\n")]),
-                        "/".join([repository, self.mode,
-                                  str(self.dataset), item].strip("\n")))
+            prev_path = "/".join([repository, self.mode,
+                              str(self.dataset -1), section, item.strip("\n")])
+            cur_path = "/".join([repository, self.mode,
+                              str(self.dataset), section, item.strip("\n")])
+            print prev_path
+            print cur_path
+            if os.path.exists(prev_path):
+                os.link(prev_path, cur_path)
             else:
-                os.makedirs("/".join([repository, self.mode,
-                                    str(self.dataset), item.strip("\n")]))
+                os.makedirs(cur_path)
