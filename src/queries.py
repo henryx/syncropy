@@ -6,6 +6,8 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
+__author__ = "enrico"
+
 class Common(object):
     """
     This object is a base for another objects

@@ -6,7 +6,8 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
-import os
+__author__ = "enrico"
+
 import src.db
 import src.protocols
 import src.common
@@ -21,9 +22,8 @@ class Sync(object):
         self._cfg = cfg
         self._dbm = src.db.DBManager(self._cfg)
 
-    def _last_dataset(self):
+    def _get_last_dataset(self):
         select = src.queries.Select("?")
-        dataset = 0
 
         select.set_table("status")
         select.set_cols("actual")
@@ -40,6 +40,9 @@ class Sync(object):
         con.close()
         return dataset
 
+    def _set_last_dataset(self,  value):
+        ins = src.queries.Update("?")
+
     def _get_files(self, stdout):
         con = self._dbm.open()
         for filename in stdout:
@@ -52,10 +55,10 @@ class Sync(object):
         protocol = None
         store = src.common.Storage(self._cfg)
 
-        dataset = self._last_dataset()
+        dataset = self._get_last_dataset()
 
-        if dataset == self._cfg.getint("general", self.mode + "_grace"):
-            dataset = 0
+        if dataset > self._cfg.getint("general", self.mode + "_grace"):
+            dataset = 1
         else:
             dataset = dataset + 1
 
@@ -63,9 +66,9 @@ class Sync(object):
         store.dataset = dataset
 
         sections = self._cfg.sections()
-
         sections.remove("general")
         sections.remove("database")
+
         for item in sections:
             paths = self._cfg.get(item, "path").split(",")
 
@@ -79,3 +82,5 @@ class Sync(object):
                     protocol.send_cmd("find " + path + " -type f")
                     self._get_files(protocol.get_stdout)
                     """
+
+        self._set_last_dataset(dataset)

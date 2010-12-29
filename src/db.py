@@ -6,8 +6,9 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """ 
 
+__author__ = "enrico"
+
 import kinterbasdb
-import os
 
 class DBManager(object):
     _cfg = None
@@ -36,13 +37,13 @@ class DBManager(object):
                   "CREATE TABLE original_path (hash VARCHAR(32), location VARCHAR(1024))",
                   "CREATE TABLE repo_path(hash VARCHAR(32), location VARCHAR(1024))",
                   "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))",
-                  "CREATE TABLE status (grace VARCHAR(5), actual INTEGER)"
+                  "CREATE TABLE status (grace VARCHAR(5), actual INTEGER, last_run TIMESTAMP)"
                  ]
 
         data = [
-                "INSERT INTO status VALUES('day', 0)",
-                "INSERT INTO status VALUES('week', 0)",
-                "INSERT INTO status VALUES('month', 0)"
+                "INSERT INTO status VALUES('day', 0, current_timestamp)",
+                "INSERT INTO status VALUES('week', 0, current_timestamp)",
+                "INSERT INTO status VALUES('month', 0, current_timestamp)"
                ]
 
         cursor = connection.cursor()
@@ -53,10 +54,9 @@ class DBManager(object):
 
         for item in data:
             cursor.execute(item)
+        connection.commit()
 
         cursor.close()
-
-        connection.commit()
 
     def open(self):
         connection = kinterbasdb.connect(host=self._cfg.get("database", "host"),

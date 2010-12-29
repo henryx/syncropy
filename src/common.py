@@ -6,38 +6,46 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
+__author__ = "enrico"
+
 import os
-import src.db
-import src.queries
 
 class Storage(object):
     _cfg = None
+    _repository = None
     mode = None
     dataset = None
 
     def __init__(self, cfg):
         self._cfg = cfg
+        self._repository = self._cfg.get("general", "repository")
+        
         self._check_structure()
 
     def _check_structure(self):
-        repository = self._cfg.get("general", "repository")
+        if not os.path.exists(self._repository):
+            os.mkdir(self._repository)
+            os.mkdir(self._repository + "/day")
+            os.mkdir(self._repository + "/week")
+            os.mkdir(self._repository + "/month")
 
-        if not os.path.exists(repository):
-            os.mkdir(repository)
-            os.mkdir(repository + "/day")
-            os.mkdir(repository + "/week")
-            os.mkdir(repository + "/month")
+    def _gen_prev_dataset(self,  section,  path):
+        if self.dataset - 1 == 0:
+            prev_dataset = self._cfg.getint("general", self.mode + "_grace")
+        else:
+            prev_dataset = self.dataset - 1
+
+        return "/".join([self._repository, self.mode,
+                              str(prev_dataset), section, path.strip("\n")])
 
     def create_dirs(self, section, stdout):
-        repository = self._cfg.get("general", "repository")
         for item in stdout.readlines():
-            prev_path = "/".join([repository, self.mode,
-                              str(self.dataset -1), section, item.strip("\n")])
-            cur_path = "/".join([repository, self.mode,
+            prev_path = self._gen_prev_dataset(section,  item)
+            cur_path = "/".join([self._repository, self.mode,
                               str(self.dataset), section, item.strip("\n")])
-            print prev_path
-            print cur_path
+
             if os.path.exists(prev_path):
+                
                 os.link(prev_path, cur_path)
             else:
                 os.makedirs(cur_path)

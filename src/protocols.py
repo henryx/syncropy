@@ -6,6 +6,8 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
+__author__ = "enrico"
+
 import paramiko
 
 class SSH(object):

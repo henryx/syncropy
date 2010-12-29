@@ -7,6 +7,8 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
+__author__ = "enrico"
+
 import ConfigParser
 import os
 import sys
@@ -33,12 +35,17 @@ class Main(object):
                 self._cfgfile = opt[2:]
         elif opt in ["-d"]:
             self._mode = "day"
+        elif opt in ["-m"]:
+            self._mode = "month"
+        elif opt in ["w"]:
+            self._mode = "week"
         elif opt in ["-h", "--help"]:
             self.usage(0)
 
     def start(self):
         if not self._cfgfile:
-            self._cfgfile = os.getcwd() + "/backupsync.cfg"
+            print "Configuration file not found"
+            self.usage(1)
 
         if not self._mode:
             print "Backup mode not definied"

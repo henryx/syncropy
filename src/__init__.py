@@ -6,4 +6,6 @@ Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
 
-__all__ = ["sync"]
+__author__ = "enrico"
+
+__all__ = ["common", "db", "protocols", "queries", "sync"]
