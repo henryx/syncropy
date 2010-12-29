@@ -18,11 +18,23 @@ import src.queries
 class Sync(object):
     _cfg = None
     _dbm = None
-    mode = None
+    _mode = None
 
     def __init__(self, cfg):
         self._cfg = cfg
         self._dbm = src.db.DBManager(self._cfg)
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, value):
+        self._mode = value
+
+    @mode.deleter
+    def mode(self):
+        del self._mode
 
     def _get_last_dataset(self):
         select = src.queries.Select()
@@ -49,7 +61,7 @@ class Sync(object):
         upd.set_table("status")
         upd.set_data(actual=value)
         upd.set_data(last_run=now.strftime("%Y-%m-%d %H:%M:%S"))
-        upd.filter("grace = ?", self.mode)
+        upd.filter("grace = ?", self._mode)
         upd.build()
 
         con = self._dbm.open()
@@ -79,9 +91,6 @@ class Sync(object):
         else:
             dataset = dataset + 1
 
-        store.mode = self.mode
-        store.dataset = dataset
-
         sections = self._cfg.sections()
         sections.remove("general")
         sections.remove("database")
@@ -92,9 +101,12 @@ class Sync(object):
             if self._cfg.get(item, "type") == "ssh":
                 protocol = src.protocols.SSH(self._cfg)
                 protocol.connect(item)
+                store.mode = self._mode
+                store.section = item
+                store.dataset = dataset
                 for path in paths:
                     protocol.send_cmd("find " + path + " -type d")
-                    store.create_dirs(item, protocol.get_stdout())
+                    store.create_dirs(protocol.get_stdout())
                     """
                     protocol.send_cmd("find " + path + " -type f")
                     self._get_files(protocol.get_stdout)
