@@ -8,6 +8,8 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+from datetime import datetime
+
 import src.db
 import src.protocols
 import src.common
@@ -23,7 +25,7 @@ class Sync(object):
         self._dbm = src.db.DBManager(self._cfg)
 
     def _get_last_dataset(self):
-        select = src.queries.Select("?")
+        select = src.queries.Select()
 
         select.set_table("status")
         select.set_cols("actual")
@@ -41,7 +43,22 @@ class Sync(object):
         return dataset
 
     def _set_last_dataset(self,  value):
-        ins = src.queries.Update("?")
+        now = datetime.today()
+        
+        upd = src.queries.Update("?")
+        upd.set_table("status")
+        upd.set_data(actual=value)
+        upd.set_data(last_run=now.strftime("%Y-%m-%d %H:%M:%S"))
+        upd.filter("grace = ?", self.mode)
+        upd.build()
+
+        con = self._dbm.open()
+        cur = con.cursor()
+        cur.execute(upd.get_statement(), upd.get_values())
+        
+        con.commit()
+        cur.close()
+        con.close()
 
     def _get_files(self, stdout):
         con = self._dbm.open()

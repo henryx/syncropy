@@ -16,7 +16,7 @@ class Common(object):
     _statement = None
     _data = None
     
-    def __init__(self, delimiter):
+    def __init__(self, delimiter=None):
         self._delimiter = delimiter
         self._data = {"tables": [],
                       "cols": [],
@@ -44,9 +44,8 @@ class Common(object):
         }
 
 class Select(Common):
-    # NOTE: delimiter is not used
-    def __init__(self, delimiter=None):
-        super(Select, self).__init__(delimiter)
+    def __init__(self):
+        super(Select, self).__init__()
 
     def set_cols(self, colname):
        self._data["cols"].append(colname)
@@ -62,7 +61,7 @@ class Select(Common):
                 self._data["where"] = " ".join([self._data["where"],
                                                 attachment, filter])
             else:
-                # FIXME: is the case to generate an exception?
+                # FIXME: Need to generate an exception?
                 pass
 
     def order_by(self, colname, direction=None):
@@ -105,5 +104,37 @@ class Insert(Common):
 
 class Update(Common):
     def __init__(self, delimiter):
-        # TODO: write the class
         super(Update, self).__init__(delimiter)
+
+    def set_data(self, **kwargs):
+        for key, item in kwargs.items():
+            self._data["cols"].append(key)
+            self._data["values"].append(item)
+
+    def filter(self, filter, value=None, attachment=None):
+        if value:
+            self._data["values"].append(value)
+
+        if not attachment:
+            self._data["where"] = filter
+        else:
+            if attachment in [SQL_AND, SQL_OR]:
+                self._data["where"] = " ".join([self._data["where"],
+                                                attachment, filter])
+            else:
+                # FIXME: Need to generate an exception?
+                pass
+
+    def build(self):
+        self._statement = " ".join(["UPDATE", self._data["tables"][0], "SET"])
+
+        for i in range(len(self._data["cols"])):
+            update = " = ".join([self._data["cols"][i], self._delimiter])
+            if i == 0:
+                self._statement = " ".join([self._statement, update])
+            else:
+                self._statement = ", ".join([self._statement, update])
+
+        if self._data["where"]:
+            self._statement = " ".join([self._statement, "WHERE",
+                                        self._data["where"]])

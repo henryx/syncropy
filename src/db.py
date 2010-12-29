@@ -15,6 +15,7 @@ class DBManager(object):
 
     def __init__(self, cfg):
         self._cfg = cfg
+        kinterbasdb.init(type_conv=200)
 
     def _check_schema(self, connection):
         cursor = connection.cursor()
@@ -64,7 +65,16 @@ class DBManager(object):
                                          user=self._cfg.get("database", "user"),
                                          password=self._cfg.get("database", "password"),
                                          charset="UTF8")
+                                         
+        
+        connection.set_type_trans_in({
+            "FIXED": kinterbasdb.typeconv_fixed_decimal.fixed_conv_in_precise
+        })
 
+        connection.set_type_trans_out({
+            "FIXED": kinterbasdb.typeconv_fixed_decimal.fixed_conv_out_precise
+        })
+        
         if not self._check_schema(connection):
             self._create_schema(connection)
 
