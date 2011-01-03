@@ -42,6 +42,7 @@ class DBManager(object):
                  ]
 
         data = [
+                "INSERT INTO status VALUES('hour', 0, current_timestamp)",
                 "INSERT INTO status VALUES('day', 0, current_timestamp)",
                 "INSERT INTO status VALUES('week', 0, current_timestamp)",
                 "INSERT INTO status VALUES('month', 0, current_timestamp)"

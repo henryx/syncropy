@@ -72,6 +72,11 @@ class Sync(object):
         cur.close()
         con.close()
 
+    def _get_dir_attrs(self, protocol):
+        con = self._dbm.open()
+        for item in protocol.get_stdout().readlines():
+            print item.strip("\n")
+
     def _get_files(self, stdout):
         con = self._dbm.open()
         for filename in stdout:
@@ -107,6 +112,7 @@ class Sync(object):
                 for path in paths:
                     protocol.send_cmd("find " + path + " -type d")
                     store.create_dirs(protocol.get_stdout())
+                    self._get_dir_attrs(protocol)
                     """
                     protocol.send_cmd("find " + path + " -type f")
                     self._get_files(protocol.get_stdout)

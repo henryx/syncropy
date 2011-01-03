@@ -76,11 +76,11 @@ class Storage(object):
     def _remove_dataset(self, path, dataset):
         shutil.rmtree(path)
         # TODO: remove dataset from database
-        
 
     def _check_structure(self):
         if not os.path.exists(self._repository):
             os.mkdir(self._repository)
+            os.mkdir(self._repository + "/hour")
             os.mkdir(self._repository + "/day")
             os.mkdir(self._repository + "/week")
             os.mkdir(self._repository + "/month")

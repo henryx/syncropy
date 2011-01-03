@@ -33,13 +33,15 @@ class Main(object):
                 self._cfgfile = opt[6:]
             else:
                 self._cfgfile = opt[2:]
+        elif opt in ["-h"]:
+            self._mode = "hour"
         elif opt in ["-d"]:
             self._mode = "day"
         elif opt in ["-m"]:
             self._mode = "month"
         elif opt in ["w"]:
             self._mode = "week"
-        elif opt in ["-h", "--help"]:
+        elif opt in ["-?", "--help"]:
             self.usage(0)
 
     def start(self):
