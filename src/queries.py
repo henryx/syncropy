@@ -8,6 +8,9 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+SQL_AND = "AND"
+SQL_OR = "OR"
+
 class Common(object):
     """
     This object is a base for another objects

@@ -34,10 +34,8 @@ class DBManager(object):
 
     def _create_schema(self, connection):
         tables = [
-                  "CREATE TABLE files (source VARCHAR(30), hash VARCHAR(32))",
-                  "CREATE TABLE original_path (hash VARCHAR(32), location VARCHAR(1024))",
-                  "CREATE TABLE repo_path(hash VARCHAR(32), location VARCHAR(1024))",
-                  "CREATE TABLE attributes (hash VARCHAR(32), attr_type VARCHAR(3), attr_value VARCHAR(30))",
+                  "CREATE TABLE store (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_type CHAR(1))",
+                  "CREATE TABLE attributes (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_type CHAR(1), attr_type VARCHAR(3), attr_value VARCHAR(30))",
                   "CREATE TABLE status (grace VARCHAR(5), actual INTEGER, last_run TIMESTAMP)"
                  ]
 
