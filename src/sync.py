@@ -12,7 +12,7 @@ from datetime import datetime
 
 import src.db
 import src.protocols
-import src.common
+import src.storage
 import src.queries
 
 class Sync(object):
@@ -87,7 +87,7 @@ class Sync(object):
 
     def execute(self):
         protocol = None
-        store = src.common.Storage(self._cfg)
+        store = src.storage.FsStorage(self._cfg)
 
         dataset = self._get_last_dataset()
 
@@ -105,17 +105,18 @@ class Sync(object):
 
             if self._cfg.get(item, "type") == "ssh":
                 protocol = src.protocols.SSH(self._cfg)
-                protocol.connect(item)
-                store.mode = self._mode
-                store.section = item
-                store.dataset = dataset
-                for path in paths:
-                    protocol.send_cmd("find " + path + " -type d")
-                    store.create_dirs(protocol.get_stdout())
-                    self._get_dir_attrs(protocol)
-                    """
-                    protocol.send_cmd("find " + path + " -type f")
-                    self._get_files(protocol.get_stdout)
-                    """
+
+            protocol.connect(item)
+            store.mode = self._mode
+            store.section = item
+            store.dataset = dataset
+            for path in paths:
+                protocol.send_cmd("find " + path + " -type d")
+                store.create_dirs(protocol.get_stdout())
+                self._get_dir_attrs(protocol)
+                """
+                protocol.send_cmd("find " + path + " -type f")
+                self._get_files(protocol.get_stdout)
+                """
 
         self._set_last_dataset(dataset)

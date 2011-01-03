@@ -12,7 +12,7 @@ import os
 import shutil
 import src.db
 
-class Storage(object):
+class FsStorage(object):
     _cfg = None
     _repository = None
     
