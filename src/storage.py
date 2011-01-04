@@ -143,16 +143,34 @@ class DbStorage(object):
         self._con.commit()
         cur.close()
 
-    def add_dir(self, directory):
+    def add_item(self, item, item_type):
         ins = src.queries.Insert("?")
         ins.set_table("store")
         ins.set_data(source=self._section, dataset=self._dataset,
-                     grace=self._mode, element=directory, element_type="d")
+                     grace=self._mode, element=item, element_type=item_type)
+        # TODO: if item_type = "f", calculate the MD5 hash
         ins.build()
         
         cur = self._con.cursor()
         cur.execute(ins.get_statement(), ins.get_values())
         
+        self._con.commit()
+        cur.close()
+
+    def add_attrs(self, element, element_type, attributes):
+        cur = self._con.cursor()
+
+        for key, value in attributes.iteritems():
+            ins = src.queries.Insert("?")
+            ins.set_table("attributes")
+            ins.set_data(source=self._section, dataset=self._dataset,
+                         grace=self._mode, element=element,
+                         element_type=element_type, attr_type=key,
+                         attr_value=value)
+            ins.build()
+
+            cur.execute(ins.get_statement(), ins.get_values())
+            
         self._con.commit()
         cur.close()
 

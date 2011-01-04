@@ -52,5 +52,9 @@ class SSH(object):
         else:
             return True
 
+
     def get_stdout(self):
         return self._stdout
+
+    def close(self):
+        self._client.close()
