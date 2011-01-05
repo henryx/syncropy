@@ -48,28 +48,29 @@ class Sync(object):
         store = None
         dbstore = None
 
+        store = src.storage.FsStorage(self._cfg)
+        dbstore = src.storage.DbStorage(self._cfg)
+
         sections = self._cfg.sections()
         sections.remove("general")
         sections.remove("database")
+
+        store.mode = self._mode
+        dbstore.mode = self._mode
+
+        dataset = dbstore.get_last_dataset()
+
+        if dataset > self._cfg.getint("general", self.mode + "_grace"):
+            dataset = 1
+        else:
+            dataset = dataset + 1
 
         for item in sections:
             paths = self._cfg.get(item, "path").split(",")
 
             if self._cfg.get(item, "type") == "ssh":
+                self._sync_ssh(item, dataset)
                 protocol = src.protocols.SSH(self._cfg)
-
-                store = src.storage.FsStorage(self._cfg)
-                dbstore = src.storage.DbStorage(self._cfg)
-
-                store.mode = self._mode
-                dbstore.mode = self._mode
-
-                dataset = dbstore.get_last_dataset()
-
-                if dataset > self._cfg.getint("general", self.mode + "_grace"):
-                    dataset = 1
-                else:
-                    dataset = dataset + 1
 
                 protocol.connect(item)
                 store.section = item
