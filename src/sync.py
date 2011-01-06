@@ -30,17 +30,43 @@ class Sync(object):
     def mode(self):
         del self._mode
 
-    def _get_attrs(self, item, protocol):
+    def _sync_ssh(self, paths, protocol, store, dbstore):
+        for path in paths:
+            protocol.send_cmd("find " + path + " -type d")
+            for remote_item in protocol.get_stdout().readlines():
+                attrs = self._get_item_attrs(remote_item, "d", protocol)
+                store.add_dir(remote_item)
+                dbstore.add_item(remote_item, "d", attrs)
+                dbstore.add_attrs(remote_item, "d", attrs)
+
+            protocol.send_cmd("find " + path + " -type f")
+            for remote_item in protocol.get_stdout().readlines():
+                attrs = self._get_item_attrs(remote_item, "f", protocol)
+                
+                if dbstore.item_exist(remote_item, attrs):
+                    store.add_item(remote_item, protocol, "l")
+                else:
+                    store.add_item(remote_item, protocol, "f")
+
+                dbstore.add_element(remote_item, "f", attrs)
+                dbstore.add_attrs(remote_item, "f", attrs)
+
+    def _get_item_attrs(self, item, item_type, protocol):
         data = {}
         
         protocol.send_cmd(r"stat --format='%a;%G;%U' " + item)
         # Spaghetti code?
-        item = protocol.get_stdout().readlines()[0].strip("\n").split(";")
+        res = protocol.get_stdout().readlines()[0].strip("\n").split(";")
         
-        data["permission"] = item[0]
-        data["group"] = item[1]
-        data["user"] = item[2]
+        data["permission"] = res[0]
+        data["group"] = res[1]
+        data["user"] = res[2]
         
+        if item_type == "f":
+            protocol.send_cmd(r"md5sum " + item)
+            res = protocol.get_stdout().readlines()[0].strip("\n")
+            data["hash"] = res.split(" ")[0]
+
         return data
 
     def execute(self):
@@ -69,7 +95,6 @@ class Sync(object):
             paths = self._cfg.get(item, "path").split(",")
 
             if self._cfg.get(item, "type") == "ssh":
-                self._sync_ssh(item, dataset)
                 protocol = src.protocols.SSH(self._cfg)
 
                 protocol.connect(item)
@@ -77,15 +102,8 @@ class Sync(object):
                 dbstore.section = item
                 store.dataset = dataset
                 dbstore.dataset = dataset
-
-                for path in paths:
-                    protocol.send_cmd("find " + path + " -type d")
-                    for remote_item in protocol.get_stdout().readlines():
-                        store.add_dir(remote_item)
-                        dbstore.add_item(remote_item, "d")
-                        attrs = self._get_attrs(remote_item, protocol)
-                        dbstore.add_attrs(remote_item, "d", attrs)
-
+                self._sync_ssh(paths, protocol, store, dbstore)
+                
                 protocol.close()
 
         dbstore.set_last_dataset(dataset)

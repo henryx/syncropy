@@ -143,12 +143,41 @@ class DbStorage(object):
         self._con.commit()
         cur.close()
 
-    def add_item(self, item, item_type):
+    def item_exist(self, item, attrs):
+        
+        cur_dataset = self.get_last_dataset()
+
+        if cur_dataset == 0:
+            cur_dataset = 1
+        
+        query = src.queries.Select()
+        query.set_table("attributes")
+        query.set_cols("count(*)")
+        query.set_filter("grace = ?", self._mode)
+        query.set_filter("source = ?", self._section, src.queries.SQL_AND)
+        query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
+        query.set_filter("element = ?", item.strip("\n"), src.queries.SQL_AND)
+        query.set_filter("attr_type = ?", "hash", src.queries.SQL_AND)
+        query.set_filter("attr_value = ?", attrs["hash"], src.queries.SQL_AND)
+        query.build()
+        
+        cur = self._con.cursor()
+        cur.execute(query.get_statement(), query.get_values())
+
+        res = cur.fetchone()[0]
+
+        cur.close()
+        
+        if res > 0:
+            return True
+        else:
+            return False
+
+    def add_element(self, element, element_type, attrs):
         ins = src.queries.Insert("?")
         ins.set_table("store")
         ins.set_data(source=self._section, dataset=self._dataset,
-                     grace=self._mode, element=item, element_type=item_type)
-        # TODO: if item_type = "f", calculate the MD5 hash
+                     grace=self._mode, element=element.strip("\n"), element_type=element_type)
         ins.build()
         
         cur = self._con.cursor()
@@ -164,7 +193,7 @@ class DbStorage(object):
             ins = src.queries.Insert("?")
             ins.set_table("attributes")
             ins.set_data(source=self._section, dataset=self._dataset,
-                         grace=self._mode, element=element,
+                         grace=self._mode, element=element.strip("\n"),
                          element_type=element_type, attr_type=key,
                          attr_value=value)
             ins.build()
@@ -238,7 +267,6 @@ class FsStorage(object):
 
     def _remove_dataset(self, path, dataset):
         shutil.rmtree(path)
-        # TODO: remove dataset from database
 
     def _check_structure(self):
         if not os.path.exists(self._repository):
@@ -261,3 +289,14 @@ class FsStorage(object):
         path = "/".join([self._repository, self._mode,
                         str(self.dataset), self._section, directory.strip("\n")])
         os.makedirs(path)
+
+    def add_item(self, filename, protocol, mode):
+        path = "/".join([self._repository, self._mode,
+                        str(self.dataset), self._section, filename.strip("\n")])
+
+        if mode == "l":
+            prev = self._gen_prev_dataset(filename)
+            os.link(prev, path)
+
+        elif mode == "f":
+            stat = protocol.get_file(filename.strip("\n"), path)

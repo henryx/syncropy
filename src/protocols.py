@@ -38,6 +38,10 @@ class SSH(object):
     def send_cmd(self, cmd):
         self._stdin, self._stdout, self._stderr = self._client.exec_command(cmd)
 
+    def get_stdout(self):
+        return self._stdout
+    
+    def is_err_cmd(self):
         error = 0
         errstr = []
         for value in self._stderr:
@@ -51,10 +55,6 @@ class SSH(object):
             return False
         else:
             return True
-
-
-    def get_stdout(self):
-        return self._stdout
 
     def close(self):
         self._client.close()
