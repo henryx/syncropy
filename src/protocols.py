@@ -52,9 +52,9 @@ class SSH(object):
             for value in errstr:
                 print value
 
-            return False
-        else:
             return True
+        else:
+            return False
 
     def close(self):
         self._client.close()

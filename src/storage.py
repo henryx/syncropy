@@ -30,6 +30,7 @@ class DbStorage(object):
         self._con = dbm.open()
         
     def __del__(self):
+        self._con.commit()
         self._con.close()
             
     @property
@@ -140,7 +141,6 @@ class DbStorage(object):
         cur = self._con.cursor()
         cur.execute(upd.get_statement(), upd.get_values())
         
-        self._con.commit()
         cur.close()
 
     def item_exist(self, item, attrs):
@@ -183,7 +183,6 @@ class DbStorage(object):
         cur = self._con.cursor()
         cur.execute(ins.get_statement(), ins.get_values())
         
-        self._con.commit()
         cur.close()
 
     def add_attrs(self, element, element_type, attributes):
@@ -200,7 +199,6 @@ class DbStorage(object):
 
             cur.execute(ins.get_statement(), ins.get_values())
             
-        self._con.commit()
         cur.close()
 
 class FsStorage(object):
