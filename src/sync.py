@@ -34,22 +34,22 @@ class Sync(object):
         for path in paths:
             protocol.send_cmd("find " + path + " -type d")
             for remote_item in protocol.get_stdout().readlines():
-                attrs = self._get_item_attrs(remote_item, "d", protocol)
-                store.add_dir(remote_item)
-                dbstore.add_item(remote_item, "d", attrs)
-                dbstore.add_attrs(remote_item, "d", attrs)
+                attrs = self._get_item_attrs(remote_item.strip("\n"), "d", protocol)
+                store.add_dir(remote_item.strip("\n"))
+                dbstore.add_element(remote_item.strip("\n"), "d", attrs)
+                dbstore.add_attrs(remote_item.strip("\n"), "d", attrs)
 
             protocol.send_cmd("find " + path + " -type f")
             for remote_item in protocol.get_stdout().readlines():
-                attrs = self._get_item_attrs(remote_item, "f", protocol)
+                attrs = self._get_item_attrs(remote_item.strip("\n"), "f", protocol)
                 
-                if dbstore.item_exist(remote_item, attrs):
-                    store.add_item(remote_item, protocol, "l")
+                if dbstore.item_exist(remote_item.strip("\n"), attrs):
+                    store.add_item(remote_item.strip("\n"), protocol, "l")
                 else:
-                    store.add_item(remote_item, protocol, "f")
+                    store.add_item(remote_item.strip("\n"), protocol, "f")
 
-                dbstore.add_element(remote_item, "f", attrs)
-                dbstore.add_attrs(remote_item, "f", attrs)
+                dbstore.add_element(remote_item.strip("\n"), "f", attrs)
+                dbstore.add_attrs(remote_item.strip("\n"), "f", attrs)
 
     def _get_item_attrs(self, item, item_type, protocol):
         data = {}

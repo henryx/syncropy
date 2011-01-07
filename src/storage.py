@@ -156,7 +156,7 @@ class DbStorage(object):
         query.set_filter("grace = ?", self._mode)
         query.set_filter("source = ?", self._section, src.queries.SQL_AND)
         query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
-        query.set_filter("element = ?", item.strip("\n"), src.queries.SQL_AND)
+        query.set_filter("element = ?", item, src.queries.SQL_AND)
         query.set_filter("attr_type = ?", "hash", src.queries.SQL_AND)
         query.set_filter("attr_value = ?", attrs["hash"], src.queries.SQL_AND)
         query.build()
@@ -177,7 +177,7 @@ class DbStorage(object):
         ins = src.queries.Insert("?")
         ins.set_table("store")
         ins.set_data(source=self._section, dataset=self._dataset,
-                     grace=self._mode, element=element.strip("\n"), element_type=element_type)
+                     grace=self._mode, element=element, element_type=element_type)
         ins.build()
         
         cur = self._con.cursor()
@@ -193,7 +193,7 @@ class DbStorage(object):
             ins = src.queries.Insert("?")
             ins.set_table("attributes")
             ins.set_data(source=self._section, dataset=self._dataset,
-                         grace=self._mode, element=element.strip("\n"),
+                         grace=self._mode, element=element,
                          element_type=element_type, attr_type=key,
                          attr_value=value)
             ins.build()
@@ -283,20 +283,20 @@ class FsStorage(object):
             prev_dataset = self.dataset - 1
 
         return "/".join([self._repository, self._mode,
-                         str(prev_dataset), self._section, path.strip("\n")])
+                         str(prev_dataset), self._section, path])
 
     def add_dir(self, directory):
         path = "/".join([self._repository, self._mode,
-                        str(self.dataset), self._section, directory.strip("\n")])
+                        str(self.dataset), self._section, directory])
         os.makedirs(path)
 
     def add_item(self, filename, protocol, mode):
         path = "/".join([self._repository, self._mode,
-                        str(self.dataset), self._section, filename.strip("\n")])
+                        str(self.dataset), self._section, filename])
 
         if mode == "l":
             prev = self._gen_prev_dataset(filename)
             os.link(prev, path)
 
         elif mode == "f":
-            stat = protocol.get_file(filename.strip("\n"), path)
+            stat = protocol.get_file(filename, path)
