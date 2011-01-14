@@ -61,8 +61,12 @@ class Main(object):
         s.execute()
 
 if __name__ == "__main__":
+    #import pycallgraph
+    
+    #pycallgraph.start_trace()
     main = Main()
 
     for item in sys.argv[1:]:
         main.parseopt(item)
     main.start()
+    #pycallgraph.make_dot_graph('backupsync.png')

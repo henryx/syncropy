@@ -210,7 +210,6 @@ class FsStorage(object):
     _section = None
 
     def __init__(self, cfg):
-        super(FsStorage, self).__init__()
         self._cfg = cfg
         self._repository = self._cfg.get("general", "repository")
         
@@ -249,10 +248,10 @@ class FsStorage(object):
         self._dataset = value
         
         if not self._section:
-            raise AttributeError, "Section not definied"
+            raise AttributeError, "Section not defined"
         
         if not self._mode:
-            raise AttributeError, "Grace not definied"
+            raise AttributeError, "Grace not defined"
         
         path = "/".join([self._repository, self._mode, str(self._dataset), self._section])
 

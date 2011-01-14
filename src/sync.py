@@ -54,7 +54,7 @@ class Sync(object):
     def _get_item_attrs(self, item, item_type, acl_store, protocol):
         data = {}
         acls = []
-        
+
         protocol.send_cmd(r"stat --format='%a;%G;%U' " + item)
 
         if not protocol.is_err_cmd():
