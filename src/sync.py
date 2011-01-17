@@ -62,7 +62,7 @@ class Sync(object):
                 data["permission"] = res.strip("\n").split(";")[0]
                 data["group"] = res.strip("\n").split(";")[1]
                 data["user"] = res.strip("\n").split(";")[2]
-        
+
             if item_type == "f":
                 protocol.send_cmd(r"md5sum " + item)
                 res = protocol.get_stdout().readlines()[0].strip("\n")
@@ -109,17 +109,17 @@ class Sync(object):
             dbstore.dataset = dataset
 
             if self._cfg.get(item, "type") == "ssh":
-                
+
                 if self._cfg.getboolean(item, "store_acl"):
                     acl_store = True
                 else:
                     acl_store = False
-                
+
                 protocol = src.protocols.SSH(self._cfg)
 
                 protocol.connect(item)
                 self._sync_ssh(paths, acl_store, protocol, store, dbstore)
-                
+
                 protocol.close()
 
         dbstore.set_last_dataset(dataset)

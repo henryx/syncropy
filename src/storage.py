@@ -25,14 +25,14 @@ class DbStorage(object):
 
     def __init__(self, cfg):
         self._cfg = cfg
-        
+
         dbm = src.db.DBManager(self._cfg)
         self._con = dbm.open()
-        
+
     def __del__(self):
         self._con.commit()
         self._con.close()
-            
+
     @property
     def mode(self):
         return self._mode
@@ -52,10 +52,10 @@ class DbStorage(object):
     @dataset.setter
     def dataset(self, value):
         self._dataset = value
-        
+
         if not self._section:
             raise AttributeError, "Section not definied"
-        
+
         if not self._mode:
             raise AttributeError, "Grace not definied"        
 
@@ -69,7 +69,7 @@ class DbStorage(object):
     @property
     def section(self):
         return self._section
-        
+
     @section.setter
     def section(self, value):
         self._section = value
@@ -86,12 +86,12 @@ class DbStorage(object):
         query.set_filter("source = ?", self._section, src.queries.SQL_AND)
         query.set_filter("dataset = ?", self._dataset, src.queries.SQL_AND)
         query.build()
-        
+
         cur = self._con.cursor()
         cur.execute(query.get_statement(), query.get_values())
-        
+
         result = cur.fetchone()[0]
-        
+
         if result > 0:
             return True
         else:
@@ -103,9 +103,9 @@ class DbStorage(object):
             "DELETE FROM store WHERE source = ? AND grace = ? AND dataset = ?",
             "DELETE FROM attributes WHERE source = ? AND grace = ? AND dataset = ?",
         ]
-        
+
         cur = self._con.cursor()
-        
+
         for item in delete:
             cur.execute(item, (self._section, self._mode, self._dataset))
 
@@ -140,16 +140,16 @@ class DbStorage(object):
 
         cur = self._con.cursor()
         cur.execute(upd.get_statement(), upd.get_values())
-        
+
         cur.close()
 
     def item_exist(self, item, attrs):
-        
+
         cur_dataset = self.get_last_dataset()
 
         if cur_dataset == 0:
             cur_dataset = 1
-        
+
         query = src.queries.Select()
         query.set_table("attributes")
         query.set_cols("count(*)")
@@ -160,14 +160,14 @@ class DbStorage(object):
         query.set_filter("attr_type = ?", "hash", src.queries.SQL_AND)
         query.set_filter("attr_value = ?", attrs["hash"], src.queries.SQL_AND)
         query.build()
-        
+
         cur = self._con.cursor()
         cur.execute(query.get_statement(), query.get_values())
 
         res = cur.fetchone()[0]
 
         cur.close()
-        
+
         if res > 0:
             return True
         else:
@@ -179,10 +179,10 @@ class DbStorage(object):
         ins.set_data(source=self._section, dataset=self._dataset,
                      grace=self._mode, element=element, element_type=element_type)
         ins.build()
-        
+
         cur = self._con.cursor()
         cur.execute(ins.get_statement(), ins.get_values())
-        
+
         cur.close()
 
     def add_attrs(self, element, element_type, attributes):
@@ -198,21 +198,22 @@ class DbStorage(object):
             ins.build()
 
             cur.execute(ins.get_statement(), ins.get_values())
-            
+
         cur.close()
 
 class FsStorage(object):
     _cfg = None
     _repository = None
-    
+
     _mode = None
     _dataset = None
     _section = None
 
     def __init__(self, cfg):
+        super(FsStorage, self).__init__()
         self._cfg = cfg
         self._repository = self._cfg.get("general", "repository")
-        
+
         self._check_structure()
 
     @property
@@ -230,7 +231,7 @@ class FsStorage(object):
     @property
     def section(self):
         return self._section
-        
+
     @section.setter
     def section(self, value):
         self._section = value
@@ -246,13 +247,13 @@ class FsStorage(object):
     @dataset.setter
     def dataset(self, value):
         self._dataset = value
-        
+
         if not self._section:
-            raise AttributeError, "Section not defined"
-        
+            raise AttributeError, "Section not definied"
+
         if not self._mode:
-            raise AttributeError, "Grace not defined"
-        
+            raise AttributeError, "Grace not definied"
+
         path = "/".join([self._repository, self._mode, str(self._dataset), self._section])
 
         if os.path.exists(path):
