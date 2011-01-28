@@ -62,7 +62,7 @@ class Main(object):
 
 if __name__ == "__main__":
     import pycallgraph
-    
+
     pycallgraph.start_trace()
     main = Main()
 

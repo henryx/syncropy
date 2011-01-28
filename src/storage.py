@@ -57,7 +57,7 @@ class DbStorage(object):
             raise AttributeError, "Section not definied"
 
         if not self._mode:
-            raise AttributeError, "Grace not definied"        
+            raise AttributeError, "Grace not definied"
 
         if self._check_dataset_exist():
             self._del_dataset()
