@@ -10,6 +10,7 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import ConfigParser
+import logging
 import os
 import sys
 import src.sync
@@ -21,10 +22,31 @@ class Main(object):
     def __init__(self):
         pass
 
+    def _set_log(self, filename, level):
+        LEVELS = {'debug': logging.DEBUG,
+                  'info': logging.INFO,
+                  'warning': logging.WARNING,
+                  'error': logging.ERROR,
+                  'critical': logging.CRITICAL
+                 }
+          
+        logger = logging.getLogger("BackupSYNC")
+        logger.setLevel(LEVELS.get(level, logging.NOTSET)
+
+        handler = logging.handlers.RotatingFileHandler(
+              filename, maxBytes=20480, backupCount=20)
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+        logger.addHandler(handler)
+        
+
     def usage(self, exit_mode):
         print "Usage:"
         print "-c<file> or --cfg=<file> Use the specified configuration file"
-        print "-d                       The daily backup is executed"
+        print "-h                       Hourly backup is executed"
+        print "-d                       Daily backup is executed"
+        print "-w                       Weekly backup is executed"
+        print "-m                       Monthly backup is executed"
+
         sys.exit(exit_mode)
 
     def parseopt(self, opt):
@@ -53,8 +75,13 @@ class Main(object):
             print "Backup mode not definied"
             self.usage(1)
 
+        
+
         cfg = ConfigParser.ConfigParser()
         cfg.readfp(open(self._cfgfile, "r"))
+
+        self._set_log(filename=self._cfgfile.get("general", "log_file"),
+                      level=self._cfgfile.get("general", "log_level"))
 
         s = src.sync.Sync(cfg)
         s.mode = self._mode
