@@ -10,6 +10,7 @@ __author__ = "enrico"
 
 from datetime import datetime
 
+import logging
 import os
 import shutil
 import src.db
@@ -19,14 +20,16 @@ class DbStorage(object):
     _cfg = None
     _con = None
 
-    _mode = None
     _dataset = None
+    _mode = None
+    _logger = None
     _section = None
 
     def __init__(self, cfg):
         self._cfg = cfg
 
         dbm = src.db.DBManager(self._cfg)
+        self._logger = logging.getLogger("BackupSYNC")
         self._con = dbm.open()
 
     def __del__(self):
@@ -215,8 +218,9 @@ class FsStorage(object):
     _cfg = None
     _repository = None
 
-    _mode = None
     _dataset = None
+    _logger = None
+    _mode = None
     _section = None
 
     def __init__(self, cfg):
@@ -224,6 +228,7 @@ class FsStorage(object):
         self._cfg = cfg
         self._repository = self._cfg.get("general", "repository")
 
+        self._logger = logging.getLogger("BackupSYNC")
         self._check_structure()
 
     @property
@@ -278,11 +283,14 @@ class FsStorage(object):
 
     def _check_structure(self):
         if not os.path.exists(self._repository):
-            os.mkdir(self._repository)
-            os.mkdir(self._repository + "/hour")
-            os.mkdir(self._repository + "/day")
-            os.mkdir(self._repository + "/week")
-            os.mkdir(self._repository + "/month")
+            try:
+                os.mkdir(self._repository)
+                os.mkdir(self._repository + "/hour")
+                os.mkdir(self._repository + "/day")
+                os.mkdir(self._repository + "/week")
+                os.mkdir(self._repository + "/month")
+            except IOError as (errno, strerror):
+                self._logger.fatal("I/O error({0}): {1}".format(errno, strerror))
 
     def _dataset_path(self, previous):
         if previous:
@@ -308,4 +316,4 @@ class FsStorage(object):
             try:
                 protocol.get_file(item, (self._dataset_path(False) + os.path.sep + item))
             except IOError as (errno, strerror):
-                print "I/O error({0}): {1}".format(errno, strerror)
+                self._logger.error("I/O error({0}): {1}".format(errno, strerror))

@@ -8,6 +8,8 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import logging
+import logging.handlers
 import src.protocols
 import src.storage
 
@@ -17,6 +19,22 @@ class Sync(object):
 
     def __init__(self, cfg):
         self._cfg = cfg
+
+    def _set_log(self, filename, level):
+        LEVELS = {'debug': logging.DEBUG,
+                  'info': logging.INFO,
+                  'warning': logging.WARNING,
+                  'error': logging.ERROR,
+                  'critical': logging.CRITICAL
+                 }
+
+        logger = logging.getLogger("BackupSYNC")
+        logger.setLevel(LEVELS.get(level.lower(), logging.NOTSET))
+
+        handler = logging.handlers.RotatingFileHandler(
+                filename, maxBytes=20971520, backupCount=20)
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+        logger.addHandler(handler)
 
     @property
     def mode(self):
@@ -32,13 +50,13 @@ class Sync(object):
 
     def execute(self):
         protocols = {}
-        store = None
+        fsstore = None
         dbstore = None
 
-        store = src.storage.FsStorage(self._cfg)
+        fsstore = src.storage.FsStorage(self._cfg)
         dbstore = src.storage.DbStorage(self._cfg)
 
-        store.mode = self._mode
+        fsstore.mode = self._mode
         dbstore.mode = self._mode
 
         sections = self._cfg.sections()
@@ -51,28 +69,29 @@ class Sync(object):
         else:
             dataset = dataset + 1
 
+        self._set_log(filename=self._cfg.get("general", "log_file"),
+                      level=self._cfg.get("general", "log_level"))
+        logger = logging.getLogger("BackupSYNC")
+        logger.info("Beginning backup")
         for item in sections:
             paths = self._cfg.get(item, "path").split(",")
 
-            store.section = item
+            fsstore.section = item
             dbstore.section = item
-            store.dataset = dataset
+            fsstore.dataset = dataset
             dbstore.dataset = dataset
 
             if self._cfg.get(item, "type") == "ssh":
                 ssh = SyncSSH(self._cfg)
                 ssh.section = item
-                ssh.filestore = store
+                ssh.filestore = fsstore
                 ssh.dbstore = dbstore
-
-                if self._cfg.getboolean(item, "store_acl"):
-                    ssh.acl_sync = True
-                else:
-                    ssh.acl_sync = False
+                ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
 
                 ssh.sync(paths)
 
         dbstore.set_last_dataset(dataset)
+        logger.info("Ending backup")
 
 class SyncSSH(object):
     _cfg = None
