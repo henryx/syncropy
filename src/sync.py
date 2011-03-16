@@ -43,7 +43,6 @@ class Sync(object):
 
         sections = self._cfg.sections()
         sections.remove("general")
-        sections.remove("database")
 
         dataset = dbstore.get_last_dataset()
 
@@ -77,7 +76,7 @@ class Sync(object):
 
 class SyncSSH(object):
     _cfg = None
-    _protocols = None
+    _remote = None
 
     _section = None
     _acl_sync = None
@@ -86,11 +85,51 @@ class SyncSSH(object):
 
     def __init__(self, cfg):
         self._cfg = cfg
-        self._protocols = {}
+        self._remote = src.protocols.SSH(self._cfg)
 
     def __del__(self):
-        for item in self._protocols.keys():
-            self._protocols[item].close()
+        self._remote.close()
+
+    def _get_item_list(self, path, itemtype):
+        self._remote.send_cmd(
+                        "find " +
+                        path +
+                        " -type " +
+                        itemtype +
+                        r" -exec stat --format='%a;%G;%U;%F;%Y;%Z;%n' \{\} + ")
+
+        stdout = self._remote.get_stdout()
+        return stdout
+
+    def _get_item_attrs(self, item):
+        result = {}
+
+        result["permission"] = item.split(";")[0]
+        result["group"] = item.split(";")[1]
+        result["user"] = item.split(";")[2]
+
+        if item.split(";")[3] == "directory":
+            result.put("type", "d")
+        elif item.split(";")[3] == "regular file":
+            result.put("type", "f")
+        else:
+            result.put("type", "l")
+
+        result["mtime"] = item.split(";")[4]
+        result["chtime"] = item.split(";")[5]
+
+        return result
+
+    def _store(self, item):
+        filedata = item.strip("\n").split(";/")
+
+        fileitem = "/" + filedata[1]
+        attrs = self._get_item_attrs(filedata[0])
+        if attrs["type"] == "f" and self._dbstore.item_exist():
+            attrs["type"] = "pl"
+
+        self._filestore.add(fileitem, attrs)
+        self._dbstore.add(fileitem, attrs)
 
     @property
     def section(self):
@@ -99,13 +138,7 @@ class SyncSSH(object):
     @section.setter
     def section(self, value):
         self._section = value
-
-        self._protocols[self._section + "data"] = src.protocols.SSH(self._cfg)
-        self._protocols[self._section + "attrs"] = src.protocols.SSH(self._cfg)
-        self._protocols[self._section + "hash"] = src.protocols.SSH(self._cfg)
-
-        for item in self._protocols.keys():
-            self._protocols[item].connect(self.section)
+        self._remote.connect(self.section)
 
     @section.deleter
     def section(self):
@@ -158,64 +191,10 @@ class SyncSSH(object):
             raise AttributeError, "Section not definied"
 
         for path in paths:
-            self._protocols[self._section + "data"].send_cmd("find " + path + " -type d")
-            stdout = self._protocols[self._section + "data"].get_stdout()
-
+            stdout = self._get_item_list(path, "d")
             for remote_item in stdout.readlines():
-                attrs = self._get_item_attrs(remote_item.strip("\n"), "d")
-                if attrs:
-                    self._filestore.add_dir(remote_item.strip("\n"))
-                    self._dbstore.add_element(remote_item.strip("\n"), "d", attrs)
-                    self._dbstore.add_attrs(remote_item.strip("\n"), "d", attrs)
+                self._store(remote_item)
 
-                self._protocols[self._section + "data"].send_cmd("find " + path + " -type f")
-                stdout = self._protocols[self._section + "data"].get_stdout()
-
-                for remote_item in stdout.readlines():
-                    attrs = self._get_item_attrs(remote_item.strip("\n"), "f")
-                    if attrs:
-                        if self._dbstore.item_exist(remote_item.strip("\n"), attrs):
-                            self.filestore.add_item(remote_item.strip("\n"),
-                                                    self._protocols[self._section + "data"],
-                                                    "l")
-                        else:
-                            self.filestore.add_item(remote_item.strip("\n"),
-                                                    self._protocols[self._section + "data"],
-                                                    "f")
-                        self._dbstore.add_element(remote_item.strip("\n"), "f", attrs)
-                        self._dbstore.add_attrs(remote_item.strip("\n"), "f", attrs)
-
-    def _get_item_attrs(self, item, item_type):
-        data = {}
-        acls = []
-
-        remote_cmd = r"stat --format='%a;%G;%U' '" + item + "'"
-        #print remote_cmd
-        self._protocols[self._section + "attrs"].send_cmd(remote_cmd)
-
-        if not self._protocols[self._section + "attrs"].is_err_cmd():
-            stdout = self._protocols[self._section + "attrs"].get_stdout()
-
-            for res in stdout.readlines():
-                data["permission"] = res.strip("\n").split(";")[0]
-                data["group"] = res.strip("\n").split(";")[1]
-                data["user"] = res.strip("\n").split(";")[2]
-
-            if item_type == "f":
-                remote_cmd = r"md5sum '" + item + "'"
-                self._protocols[self._section + "hash"].send_cmd(remote_cmd)
-                stdout = self._protocols[self._section + "hash"].get_stdout()
-                for item in stdout.readlines():
-                    res = item[0].strip("\n")
-                    data["hash"] = res.split(" ")[0]
-        """
-        if self._acl_sync:
-            remote_cmd = r"getfacl '" + item + "'"
-            protocol.send_cmd(remote_cmd)
-
-            if not protocol.is_err_cmd():
-                for res in protocol.get_stdout().readlines():
-                    if not res.strip("\n").startswith("#"):
-                        acls.append(res.strip("\n"))
-        """
-        return data
+            stdout = self._get_item_list(path, "f")
+            for remote_item in stdout.readlines():
+                self._store(remote_item)

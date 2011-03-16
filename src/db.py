@@ -62,7 +62,7 @@ class DBManager(object):
 
     def open(self):
         db = self._cfg.get("general", "repository") + "/.store.db"
-        connection = sqlite3.connect(db)
+        connection = sqlite.connect(db)
         
         if not self._check_schema(connection):
             self._create_schema(connection)
