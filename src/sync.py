@@ -116,7 +116,7 @@ class SyncSSH(object):
             result["type"] = "l"
 
         result["mtime"] = item.split(";")[4]
-        result["chtime"] = item.split(";")[5]
+        result["ctime"] = item.split(";")[5]
 
         return result
 

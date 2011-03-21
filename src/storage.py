@@ -157,10 +157,8 @@ class DbStorage(object):
         query.set_filter("source = ?", self._section, src.queries.SQL_AND)
         query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
         query.set_filter("element = ?", item.decode("utf-8"), src.queries.SQL_AND)
-        query.set_filter("attr_type = ?", "mtime", src.queries.SQL_AND)
-        query.set_filter("attr_value = ?", attrs["mtime"], src.queries.SQL_AND)
-        query.set_filter("attr_type = ?", "chtime", src.queries.SQL_AND)
-        query.set_filter("attr_value = ?", attrs["chtime"], src.queries.SQL_AND)
+        query.set_filter("element_mtime = ?", attrs["mtime"], src.queries.SQL_AND)
+        query.set_filter("element_ctime = ?", attrs["ctime"], src.queries.SQL_AND)
         query.build()
 
         cur = self._con.cursor()
@@ -179,7 +177,8 @@ class DbStorage(object):
         ins = src.queries.Insert("?")
         ins.set_table("store")
         ins.set_data(source=self._section, dataset=self._dataset,
-                     grace=self._mode, element=element, element_type=attrs["type"])
+                     grace=self._mode, element=element.decode("utf-8"),
+                     element_type=attrs["type"])
         ins.build()
 
         cur = self._con.cursor()
@@ -190,16 +189,20 @@ class DbStorage(object):
     def _add_attrs(self, element, attributes):
         cur = self._con.cursor()
 
-        for key, value in attributes.iteritems():
-            ins = src.queries.Insert("?")
-            ins.set_table("attributes")
-            ins.set_data(source=self._section, dataset=self._dataset,
-                         grace=self._mode, element=element,
-                         element_type=attributes["type"], attr_type=key,
-                         attr_value=value)
-            ins.build()
+        ins = src.queries.Insert("?")
+        ins.set_table("attributes")
+        ins.set_data(source=self._section,
+                        dataset=self._dataset,
+                        grace=self._mode,
+                        element=element.decode("utf-8"),
+                        element_type=attributes["type"],
+                        element_user=attributes["user"],
+                        element_group=attributes["group"],
+                        element_ctime=attributes["ctime"],
+                        element_mtime=attributes["mtime"])
+        ins.build()
 
-            cur.execute(ins.get_statement(), ins.get_values())
+        cur.execute(ins.get_statement(), ins.get_values())
 
         cur.close()
 
@@ -291,7 +294,7 @@ class FsStorage(object):
             dataset = self._cfg.getint("general", self._mode + "_grace")
 
         path = os.path.sep.join([self._repository, self._mode,
-                        str(self.dataset), self._section])
+                        str(dataset), self._section])
 
         return path
 
