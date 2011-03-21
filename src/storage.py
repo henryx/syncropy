@@ -156,35 +156,30 @@ class DbStorage(object):
         query.set_filter("grace = ?", self._mode)
         query.set_filter("source = ?", self._section, src.queries.SQL_AND)
         query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
-        query.set_filter("element = ?", item, src.queries.SQL_AND)
+        query.set_filter("element = ?", item.decode("utf-8"), src.queries.SQL_AND)
         query.set_filter("attr_type = ?", "mtime", src.queries.SQL_AND)
         query.set_filter("attr_value = ?", attrs["mtime"], src.queries.SQL_AND)
         query.set_filter("attr_type = ?", "chtime", src.queries.SQL_AND)
         query.set_filter("attr_value = ?", attrs["chtime"], src.queries.SQL_AND)
         query.build()
 
-        try:
-            cur = self._con.cursor()
-            cur.execute(query.get_statement(), query.get_values())
+        cur = self._con.cursor()
+        cur.execute(query.get_statement(), query.get_values())
 
-            res = cur.fetchone()[0]
+        res = cur.fetchone()[0]
 
-            cur.close()
+        cur.close()
 
-            if res > 0:
-                return True
-            else:
-                return False
-        except:
-            print "Query: " + query.get_statement()
-            print "Item: " + item
+        if res > 0:
+            return True
+        else:
             return False
 
-    def add_element(self, element, element_type, attrs):
+    def _add_element(self, element, attrs):
         ins = src.queries.Insert("?")
         ins.set_table("store")
         ins.set_data(source=self._section, dataset=self._dataset,
-                     grace=self._mode, element=element, element_type=element_type)
+                     grace=self._mode, element=element, element_type=attrs["type"])
         ins.build()
 
         cur = self._con.cursor()
@@ -192,7 +187,7 @@ class DbStorage(object):
 
         cur.close()
 
-    def add_attrs(self, element, element_type, attributes):
+    def _add_attrs(self, element, attributes):
         cur = self._con.cursor()
 
         for key, value in attributes.iteritems():
@@ -200,13 +195,18 @@ class DbStorage(object):
             ins.set_table("attributes")
             ins.set_data(source=self._section, dataset=self._dataset,
                          grace=self._mode, element=element,
-                         element_type=element_type, attr_type=key,
+                         element_type=attributes["type"], attr_type=key,
                          attr_value=value)
             ins.build()
 
             cur.execute(ins.get_statement(), ins.get_values())
 
         cur.close()
+
+    def add(self, item, attrs):
+        if not attrs["type"] == "d":
+            self._add_element(item, attrs)
+            self._add_attrs(item, attrs)
 
 class FsStorage(object):
     _cfg = None

@@ -129,7 +129,7 @@ class SyncSSH(object):
             attrs["type"] = "pl"
 
         self._filestore.add(fileitem, attrs, self._remote)
-        #self._dbstore.add(fileitem, attrs)
+        self._dbstore.add(fileitem, attrs)
 
     @property
     def section(self):
