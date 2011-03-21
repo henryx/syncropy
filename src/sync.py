@@ -109,11 +109,11 @@ class SyncSSH(object):
         result["user"] = item.split(";")[2]
 
         if item.split(";")[3] == "directory":
-            result.put("type", "d")
+            result["type"] = "d"
         elif item.split(";")[3] == "regular file":
-            result.put("type", "f")
+            result["type"] = "f"
         else:
-            result.put("type", "l")
+            result["type"] = "l"
 
         result["mtime"] = item.split(";")[4]
         result["chtime"] = item.split(";")[5]
@@ -125,11 +125,11 @@ class SyncSSH(object):
 
         fileitem = "/" + filedata[1]
         attrs = self._get_item_attrs(filedata[0])
-        if attrs["type"] == "f" and self._dbstore.item_exist():
+        if attrs["type"] == "f" and self._dbstore.item_exist(fileitem, attrs):
             attrs["type"] = "pl"
 
-        self._filestore.add(fileitem, attrs)
-        self._dbstore.add(fileitem, attrs)
+        self._filestore.add(fileitem, attrs, self._remote)
+        #self._dbstore.add(fileitem, attrs)
 
     @property
     def section(self):

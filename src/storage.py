@@ -157,20 +157,27 @@ class DbStorage(object):
         query.set_filter("source = ?", self._section, src.queries.SQL_AND)
         query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
         query.set_filter("element = ?", item, src.queries.SQL_AND)
-        query.set_filter("attr_type = ?", "hash", src.queries.SQL_AND)
-        query.set_filter("attr_value = ?", attrs["hash"], src.queries.SQL_AND)
+        query.set_filter("attr_type = ?", "mtime", src.queries.SQL_AND)
+        query.set_filter("attr_value = ?", attrs["mtime"], src.queries.SQL_AND)
+        query.set_filter("attr_type = ?", "chtime", src.queries.SQL_AND)
+        query.set_filter("attr_value = ?", attrs["chtime"], src.queries.SQL_AND)
         query.build()
 
-        cur = self._con.cursor()
-        cur.execute(query.get_statement(), query.get_values())
+        try:
+            cur = self._con.cursor()
+            cur.execute(query.get_statement(), query.get_values())
 
-        res = cur.fetchone()[0]
+            res = cur.fetchone()[0]
 
-        cur.close()
+            cur.close()
 
-        if res > 0:
-            return True
-        else:
+            if res > 0:
+                return True
+            else:
+                return False
+        except:
+            print "Query: " + query.get_statement()
+            print "Item: " + item
             return False
 
     def add_element(self, element, element_type, attrs):
@@ -274,27 +281,25 @@ class FsStorage(object):
             os.mkdir(self._repository + "/week")
             os.mkdir(self._repository + "/month")
 
-    def _gen_prev_dataset(self, path):
-        if self.dataset - 1 == 0:
-            prev_dataset = self._cfg.getint("general", self._mode + "_grace")
+    def _dataset_path(self, previous):
+        if previous:
+            dataset = self._dataset - 1
         else:
-            prev_dataset = self.dataset - 1
+            dataset = self._dataset
 
-        return "/".join([self._repository, self._mode,
-                         str(prev_dataset), self._section, path])
+        if dataset == 0:
+            dataset = self._cfg.getint("general", self._mode + "_grace")
 
-    def add_dir(self, directory):
-        path = "/".join([self._repository, self._mode,
-                        str(self.dataset), self._section, directory])
-        os.makedirs(path)
+        path = os.path.sep.join([self._repository, self._mode,
+                        str(self.dataset), self._section])
 
-    def add_item(self, filename, protocol, mode):
-        path = "/".join([self._repository, self._mode,
-                        str(self.dataset), self._section, filename])
+        return path
 
-        if mode == "l":
-            prev = self._gen_prev_dataset(filename)
-            os.link(prev, path)
-
-        elif mode == "f":
-            stat = protocol.get_file(filename, path)
+    def add(self, item, attrs, protocol):
+        if attrs["type"] == "d":
+            os.makedirs(self._dataset_path(False) + os.path.sep + item)
+        elif attrs["type"] == "pl":
+            os.link((self._dataset_path(True) + os.path.sep + item),
+                    (self._dataset_path(False) + os.path.sep + item))
+        elif attrs["type"] == "f":
+            protocol.get_file(item, (self._dataset_path(False) + os.path.sep + item))
