@@ -269,7 +269,7 @@ class FsStorage(object):
         if os.path.exists(path):
             self._remove_dataset(path, self._dataset)
 
-    @dataset.deleter    
+    @dataset.deleter
     def dataset(self):
         del self._dataset
 
@@ -305,4 +305,7 @@ class FsStorage(object):
             os.link((self._dataset_path(True) + os.path.sep + item),
                     (self._dataset_path(False) + os.path.sep + item))
         elif attrs["type"] == "f":
-            protocol.get_file(item, (self._dataset_path(False) + os.path.sep + item))
+            try:
+                protocol.get_file(item, (self._dataset_path(False) + os.path.sep + item))
+            except IOError as (errno, strerror):
+                print "I/O error({0}): {1}".format(errno, strerror)
