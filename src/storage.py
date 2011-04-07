@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@gmail.com)
-Project       BackupSYNC
+Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@ymail.com)
+Project       Syncropy
 Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
@@ -29,7 +29,7 @@ class DbStorage(object):
         self._cfg = cfg
 
         dbm = src.db.DBManager(self._cfg)
-        self._logger = logging.getLogger("BackupSYNC")
+        self._logger = logging.getLogger("Syncropy")
         self._con = dbm.open()
 
     def __del__(self):
@@ -228,7 +228,7 @@ class FsStorage(object):
         self._cfg = cfg
         self._repository = self._cfg.get("general", "repository")
 
-        self._logger = logging.getLogger("BackupSYNC")
+        self._logger = logging.getLogger("Syncropy")
         self._check_structure()
 
     @property

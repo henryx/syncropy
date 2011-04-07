@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@gmail.com)
-Project       BackupSYNC
+Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@ymail.com)
+Project       Syncropy
 Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
@@ -28,7 +28,7 @@ class Sync(object):
                   'critical': logging.CRITICAL
                  }
 
-        logger = logging.getLogger("BackupSYNC")
+        logger = logging.getLogger("Syncropy")
         logger.setLevel(LEVELS.get(level.lower(), logging.NOTSET))
 
         handler = logging.handlers.RotatingFileHandler(
@@ -71,7 +71,7 @@ class Sync(object):
 
         self._set_log(filename=self._cfg.get("general", "log_file"),
                       level=self._cfg.get("general", "log_level"))
-        logger = logging.getLogger("BackupSYNC")
+        logger = logging.getLogger("Syncropy")
         logger.info("Beginning backup")
         for item in sections:
             paths = self._cfg.get(item, "path").split(",")

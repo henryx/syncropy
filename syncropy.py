@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@gmail.com)
-Project       BackupSYNC
+Project       Syncropy
 Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
 """
@@ -73,4 +73,4 @@ if __name__ == "__main__":
     for item in sys.argv[1:]:
         main.parseopt(item)
     main.start()
-    #pycallgraph.make_dot_graph('backupsync.png')
+    #pycallgraph.make_dot_graph('graph.png')
