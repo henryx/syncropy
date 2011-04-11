@@ -11,7 +11,7 @@ __author__ = "enrico"
 from datetime import datetime
 
 import logging
-import os
+import os, sys
 import shutil
 import src.db
 import src.queries
@@ -33,8 +33,9 @@ class DbStorage(object):
         self._con = dbm.open()
 
     def __del__(self):
-        self._con.commit()
-        self._con.close()
+        if self._con:
+            self._con.commit()
+            self._con.close()
 
     @property
     def mode(self):
@@ -85,9 +86,9 @@ class DbStorage(object):
         query = src.queries.Select()
         query.set_table("store")
         query.set_cols("count(*)")
-        query.set_filter("grace = ?", self._mode)
-        query.set_filter("source = ?", self._section, src.queries.SQL_AND)
-        query.set_filter("dataset = ?", self._dataset, src.queries.SQL_AND)
+        query.set_filter("grace = %s", self._mode)
+        query.set_filter("source = %s", self._section, src.queries.SQL_AND)
+        query.set_filter("dataset = %s", self._dataset, src.queries.SQL_AND)
         query.build()
 
         cur = self._con.cursor()
@@ -103,8 +104,8 @@ class DbStorage(object):
     def _del_dataset(self):
         # NOTE: for convenience, these statements has written in direct form
         delete = [
-            "DELETE FROM store WHERE source = ? AND grace = ? AND dataset = ?",
-            "DELETE FROM attributes WHERE source = ? AND grace = ? AND dataset = ?",
+            "DELETE FROM store WHERE source = %s AND grace = %s AND dataset = %s",
+            "DELETE FROM attributes WHERE source = %s AND grace = %s AND dataset = %s",
         ]
 
         cur = self._con.cursor()
@@ -120,7 +121,7 @@ class DbStorage(object):
 
         select.set_table("status")
         select.set_cols("actual")
-        select.set_filter("grace = ?", self._mode)
+        select.set_filter("grace = %s", self._mode)
         select.build()
 
         cur = self._con.cursor()
@@ -134,11 +135,11 @@ class DbStorage(object):
     def set_last_dataset(self, value):
         now = datetime.today()
 
-        upd = src.queries.Update("?")
+        upd = src.queries.Update("%s")
         upd.set_table("status")
         upd.set_data(actual=value)
         upd.set_data(last_run=now.strftime("%Y-%m-%d %H:%M:%S"))
-        upd.filter("grace = ?", self._mode)
+        upd.filter("grace = %s", self._mode)
         upd.build()
 
         cur = self._con.cursor()
@@ -156,12 +157,12 @@ class DbStorage(object):
         query = src.queries.Select()
         query.set_table("attributes")
         query.set_cols("count(*)")
-        query.set_filter("grace = ?", self._mode)
-        query.set_filter("source = ?", self._section, src.queries.SQL_AND)
-        query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
-        query.set_filter("element = ?", item.decode("utf-8"), src.queries.SQL_AND)
-        query.set_filter("element_mtime = ?", attrs["mtime"], src.queries.SQL_AND)
-        query.set_filter("element_ctime = ?", attrs["ctime"], src.queries.SQL_AND)
+        query.set_filter("grace = %s", self._mode)
+        query.set_filter("source = %s", self._section, src.queries.SQL_AND)
+        query.set_filter("dataset = %s", cur_dataset, src.queries.SQL_AND)
+        query.set_filter("element = %s", item.decode("utf-8"), src.queries.SQL_AND)
+        query.set_filter("element_mtime = %s", attrs["mtime"], src.queries.SQL_AND)
+        query.set_filter("element_ctime = %s", attrs["ctime"], src.queries.SQL_AND)
         query.build()
 
         cur = self._con.cursor()
@@ -177,7 +178,7 @@ class DbStorage(object):
             return False
 
     def _add_element(self, element, attrs):
-        ins = src.queries.Insert("?")
+        ins = src.queries.Insert("%s")
         ins.set_table("store")
         ins.set_data(source=self._section, dataset=self._dataset,
                      grace=self._mode, element=element.decode("utf-8"),
@@ -185,14 +186,19 @@ class DbStorage(object):
         ins.build()
 
         cur = self._con.cursor()
-        cur.execute(ins.get_statement(), ins.get_values())
+        try:
+            cur.execute(ins.get_statement(), ins.get_values())
+        except:
+            print ins.get_statement()
+            print ins.get_values()
+            sys.exit(-1)
 
         cur.close()
 
     def _add_attrs(self, element, attributes):
         cur = self._con.cursor()
 
-        ins = src.queries.Insert("?")
+        ins = src.queries.Insert("%s")
         ins.set_table("attributes")
         ins.set_data(source=self._section,
                         dataset=self._dataset,

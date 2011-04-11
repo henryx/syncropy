@@ -8,21 +8,18 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
-import kinterbasdb
+import psycopg2
 
 class DBManager(object):
     _cfg = None
 
     def __init__(self, cfg):
         self._cfg = cfg
-        kinterbasdb.init(type_conv=200)
 
     def _check_schema(self, connection):
         cursor = connection.cursor()
-        cursor.execute(" ".join(["SELECT COUNT(rdb$relation_name)",
-                                 "FROM rdb$relations WHERE",
-                                 "rdb$relation_name NOT LIKE 'RDB$%'",
-                                 "AND rdb$relation_name NOT LIKE 'MON$%'"]))
+        cursor.execute("SELECT COUNT(tablename) FROM pg_tables WHERE " +
+                        "schemaname = 'public'")
 
         value = cursor.fetchone()[0]
         cursor.close()
@@ -34,7 +31,7 @@ class DBManager(object):
 
     def _create_schema(self, connection):
         tables = [
-                  "CREATE TABLE store (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_type CHAR(1))",
+                  "CREATE TABLE store (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_type VARCHAR(2))",
                   "CREATE TABLE attributes (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_user VARCHAR(50), element_group VARCHAR(50), element_type CHAR(2), element_perm VARCHAR(32), element_mtime INTEGER, element_ctime INTEGER)",
                   "CREATE TABLE status (grace VARCHAR(5), actual INTEGER, last_run TIMESTAMP)"
                  ]
@@ -65,18 +62,10 @@ class DBManager(object):
         cursor.close()
 
     def open(self):
-        connection = kinterbasdb.connect(host=self._cfg.get("database", "host"),
+        connection = psycopg2.connect(host=self._cfg.get("database", "host"),
                                        database=self._cfg.get("database", "name"),
                                        user=self._cfg.get("database", "user"),
-                                       password=self._cfg.get("database", "password"),
-                                       charset="UTF8")
-        connection.set_type_trans_in({
-            "FIXED": kinterbasdb.typeconv_fixed_decimal.fixed_conv_in_precise
-        })
-        
-        connection.set_type_trans_out({
-            "FIXED": kinterbasdb.typeconv_fixed_decimal.fixed_conv_out_precise
-        })
+                                       password=self._cfg.get("database", "password"))
         
         if not self._check_schema(connection):
             self._create_schema(connection)
