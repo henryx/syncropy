@@ -61,6 +61,7 @@ class Sync(object):
 
         sections = self._cfg.sections()
         sections.remove("general")
+        sections.remove("database")
 
         dataset = dbstore.get_last_dataset()
 
