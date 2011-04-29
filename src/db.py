@@ -31,8 +31,7 @@ class DBManager(object):
 
     def _create_schema(self, connection):
         tables = [
-                  "CREATE TABLE store (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_type VARCHAR(2))",
-                  "CREATE TABLE attributes (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_user VARCHAR(50), element_group VARCHAR(50), element_type CHAR(2), element_perm VARCHAR(32), element_mtime INTEGER, element_ctime INTEGER)",
+                  "CREATE TABLE store (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_user VARCHAR(50), element_group VARCHAR(50), element_type CHAR(2), element_perm VARCHAR(32), element_mtime INTEGER, element_ctime INTEGER)",
                   "CREATE TABLE status (grace VARCHAR(5), actual INTEGER, last_run TIMESTAMP)"
                  ]
 
@@ -43,7 +42,7 @@ class DBManager(object):
                 "INSERT INTO status VALUES('month', 0, current_timestamp)"
                ]
 
-        index = ["CREATE INDEX idx_attributes_1 ON attributes(source, grace, dataset)"]
+        index = ["CREATE INDEX idx_store_1 ON store(grace, source, dataset, element, element_mtime, element_ctime)"]
 
         cursor = connection.cursor()
 

@@ -104,8 +104,7 @@ class DbStorage(object):
     def _del_dataset(self):
         # NOTE: for convenience, these statements has written in direct form
         delete = [
-            "DELETE FROM store WHERE source = %s AND grace = %s AND dataset = %s",
-            "DELETE FROM attributes WHERE source = %s AND grace = %s AND dataset = %s",
+            "DELETE FROM store WHERE source = %s AND grace = %s AND dataset = %s"
         ]
 
         cur = self._con.cursor()
@@ -155,7 +154,7 @@ class DbStorage(object):
             cur_dataset = 1
 
         query = src.queries.Select()
-        query.set_table("attributes")
+        query.set_table("store")
         query.set_cols("count(*)")
         query.set_filter("grace = %s", self._mode)
         query.set_filter("source = %s", self._section, src.queries.SQL_AND)
@@ -177,29 +176,11 @@ class DbStorage(object):
         else:
             return False
 
-    def _add_element(self, element, attrs):
+    def _add_element(self, element, attributes):
+        cur = self._con.cursor()
+
         ins = src.queries.Insert("%s")
         ins.set_table("store")
-        ins.set_data(source=self._section, dataset=self._dataset,
-                     grace=self._mode, element=element.decode("utf-8"),
-                     element_type=attrs["type"])
-        ins.build()
-
-        cur = self._con.cursor()
-        try:
-            cur.execute(ins.get_statement(), ins.get_values())
-        except:
-            print ins.get_statement()
-            print ins.get_values()
-            sys.exit(-1)
-
-        cur.close()
-
-    def _add_attrs(self, element, attributes):
-        cur = self._con.cursor()
-
-        ins = src.queries.Insert("%s")
-        ins.set_table("attributes")
         ins.set_data(source=self._section,
                         dataset=self._dataset,
                         grace=self._mode,
@@ -210,15 +191,18 @@ class DbStorage(object):
                         element_ctime=attributes["ctime"],
                         element_mtime=attributes["mtime"])
         ins.build()
-
-        cur.execute(ins.get_statement(), ins.get_values())
+        try:
+            cur.execute(ins.get_statement(), ins.get_values())
+        except:
+            print ins.get_statement()
+            print ins.get_values()
+            sys.exit(-1)
 
         cur.close()
 
     def add(self, item, attrs):
         if not attrs["type"] == "d":
             self._add_element(item, attrs)
-            self._add_attrs(item, attrs)
 
 class FsStorage(object):
     _cfg = None
