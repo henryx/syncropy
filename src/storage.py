@@ -177,8 +177,6 @@ class DbStorage(object):
             return False
 
     def _add_element(self, element, attributes):
-        cur = self._con.cursor()
-
         ins = src.queries.Insert("%s")
         ins.set_table("store")
         ins.set_data(source=self._section,
@@ -192,13 +190,14 @@ class DbStorage(object):
                         element_mtime=attributes["mtime"])
         ins.build()
         try:
+            cur = self._con.cursor()
             cur.execute(ins.get_statement(), ins.get_values())
+            cur.close()
         except:
+            # TODO: write code for better management
             print ins.get_statement()
             print ins.get_values()
             sys.exit(-1)
-
-        cur.close()
 
     def add(self, item, attrs):
         if not attrs["type"] == "d":
