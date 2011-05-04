@@ -97,7 +97,7 @@ class Sync(object):
             except Exception as ex:
                 message = ex
                 logger.error("Error while retrieving data for" +
-                                   item + ": " + message)
+                                   item + ": " + str(message))
                 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
