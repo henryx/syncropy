@@ -94,9 +94,10 @@ class Sync(object):
                     ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
 
                     ssh.sync(paths)
-            except:
+            except Exception as ex:
+                message = ex
                 logger.error("Error while retrieving data for" +
-                                   item + ": ", sys.exc_info()[0])
+                                   item + ": " + message)
                 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
