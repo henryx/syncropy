@@ -92,7 +92,7 @@ class Sync(object):
                     ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
 
                     ssh.sync(paths)
-            except Exception as (errno, strerror):
+            except Exception as (strerror):
                 logger.error("Error while retrieving data for" +
                                    item + ": " + strerror)
                 
