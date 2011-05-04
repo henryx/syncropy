@@ -74,23 +74,28 @@ class Sync(object):
                       level=self._cfg.get("general", "log_level"))
         logger = logging.getLogger("Syncropy")
         logger.info("Beginning backup")
+
         for item in sections:
-            paths = self._cfg.get(item, "path").split(",")
+            try:
+                paths = self._cfg.get(item, "path").split(",")
 
-            fsstore.section = item
-            dbstore.section = item
-            fsstore.dataset = dataset
-            dbstore.dataset = dataset
+                fsstore.section = item
+                dbstore.section = item
+                fsstore.dataset = dataset
+                dbstore.dataset = dataset
 
-            if self._cfg.get(item, "type") == "ssh":
-                ssh = SyncSSH(self._cfg)
-                ssh.section = item
-                ssh.filestore = fsstore
-                ssh.dbstore = dbstore
-                ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
+                if self._cfg.get(item, "type") == "ssh":
+                    ssh = SyncSSH(self._cfg)
+                    ssh.section = item
+                    ssh.filestore = fsstore
+                    ssh.dbstore = dbstore
+                    ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
 
-                ssh.sync(paths)
-
+                    ssh.sync(paths)
+            except Exception as (errno, strerror):
+                self._logger.error("Error while retrieving data for" +
+                                   section + ": " + strerror)
+                
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
 
