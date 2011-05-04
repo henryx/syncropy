@@ -96,7 +96,7 @@ class Sync(object):
                     ssh.sync(paths)
             except:
                 logger.error("Error while retrieving data for" +
-                                   item + ": " + sys.exc_info()[0])
+                                   item + ": ", sys.exc_info()[0])
                 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
