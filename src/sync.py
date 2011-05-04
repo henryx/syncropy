@@ -93,7 +93,7 @@ class Sync(object):
 
                     ssh.sync(paths)
             except Exception as (errno, strerror):
-                self._logger.error("Error while retrieving data for" +
+                logger.error("Error while retrieving data for" +
                                    section + ": " + strerror)
                 
         dbstore.set_last_dataset(dataset)
