@@ -10,6 +10,8 @@ __author__ = "enrico"
 
 import logging
 import logging.handlers
+import sys
+
 import src.protocols
 import src.storage
 
@@ -92,9 +94,9 @@ class Sync(object):
                     ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
 
                     ssh.sync(paths)
-            except Exception as (strerror):
+            except:
                 logger.error("Error while retrieving data for" +
-                                   item + ": " + strerror)
+                                   item + ": " + sys.exc_info()[0])
                 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
