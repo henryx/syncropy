@@ -55,6 +55,11 @@ class Sync(object):
         fsstore = None
         dbstore = None
 
+        self._set_log(filename=self._cfg.get("general", "log_file"),
+                      level=self._cfg.get("general", "log_level"))
+        logger = logging.getLogger("Syncropy")
+        logger.info("Beginning backup")
+
         fsstore = src.storage.FsStorage(self._cfg)
         dbstore = src.storage.DbStorage(self._cfg)
 
@@ -72,10 +77,7 @@ class Sync(object):
         else:
             dataset = dataset + 1
 
-        self._set_log(filename=self._cfg.get("general", "log_file"),
-                      level=self._cfg.get("general", "log_level"))
-        logger = logging.getLogger("Syncropy")
-        logger.info("Beginning backup")
+        logger.debug("Last dataset for mode " + self.mode + ": " +str(dataset))
 
         for item in sections:
             try:
@@ -96,7 +98,7 @@ class Sync(object):
                     ssh.sync(paths)
             except Exception as ex:
                 message = ex
-                logger.error("Error while retrieving data for" +
+                logger.error("Error while retrieving data for " +
                                    item + ": " + str(message))
                 
         dbstore.set_last_dataset(dataset)
