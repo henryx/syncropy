@@ -72,7 +72,7 @@ class Sync(object):
 
         dataset = dbstore.get_last_dataset()
 
-        if dataset > self._cfg.getint("general", self.mode + "_grace"):
+        if dataset >= self._cfg.getint("general", self.mode + "_grace"):
             dataset = 1
         else:
             dataset = dataset + 1
