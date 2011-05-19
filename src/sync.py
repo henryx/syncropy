@@ -55,16 +55,16 @@ class Sync(object):
         fsstore = None
         dbstore = None
 
-        self._set_log(filename=self._cfg.get("general", "log_file"),
-                      level=self._cfg.get("general", "log_level"))
-        logger = logging.getLogger("Syncropy")
-        logger.info("Beginning backup")
-
         fsstore = src.storage.FsStorage(self._cfg)
         dbstore = src.storage.DbStorage(self._cfg)
 
         fsstore.mode = self._mode
         dbstore.mode = self._mode
+
+        self._set_log(filename=self._cfg.get("general", "log_file"),
+                      level=self._cfg.get("general", "log_level"))
+        logger = logging.getLogger("Syncropy")
+        logger.info("Beginning backup")
 
         sections = self._cfg.sections()
         sections.remove("general")

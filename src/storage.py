@@ -305,4 +305,4 @@ class FsStorage(object):
             try:
                 protocol.get_file(item, (self._dataset_path(False) + os.path.sep + item))
             except IOError as (errno, strerror):
-                self._logger.error("I/O error({0}): {1}".format(errno, strerror))
+                self._logger.error("I/O error({0}) for item {1}: {2}".format(errno, item, strerror))
