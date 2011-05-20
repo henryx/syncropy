@@ -16,6 +16,7 @@ class SSH(object):
     _stdin = None
     _stdout = None
     _stderr = None
+    _sftp = None
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -29,11 +30,13 @@ class SSH(object):
                              username=self._cfg.get(section, "remote_user"),
                              password=self._cfg.get(section, "remote_password")
                             )
+        self._sftp = self._client.open_sftp()
+
+    def stat_file(self, remote):
+        return self._sftp.stat(remote)
 
     def get_file(self, remote, local):
-        sftp = self._client.open_sftp()
-        sftp.get(remote, local)
-        return sftp.stat(remote)
+        self._sftp.get(remote, local)
 
     def send_cmd(self, cmd):
         self._stdin, self._stdout, self._stderr = self._client.exec_command(cmd)

@@ -8,6 +8,7 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import itertools
 import logging
 import logging.handlers
 import sys
@@ -120,13 +121,22 @@ class SyncSSH(object):
     def __del__(self):
         self._remote.close()
 
-    def _get_item_list(self, path, itemtype):
+    def _get_list_item(self, path, itemtype):
         self._remote.send_cmd(
                         "find " +
                         path +
                         " -type " +
                         itemtype +
-                        r" -exec stat --format='%a;%G;%U;%F;%Y;%Z;%n' \{\} + ")
+                        r" -print0 | xargs -0 stat --format='%a;%G;%U;%F;%Y;%Z;%n'")
+
+        stdout = self._remote.get_stdout()
+        return stdout
+
+    def _get_list_acl(self, path):
+        self._remote.send_cmd(
+                        "find " +
+                        path +
+                        r" -print0 | xargs -0 getfacl -t")
 
         stdout = self._remote.get_stdout()
         return stdout
@@ -150,7 +160,7 @@ class SyncSSH(object):
 
         return result
 
-    def _store(self, item):
+    def _store_item(self, item):
         filedata = item.strip("\n").split(";/")
 
         fileitem = "/" + filedata[1]
@@ -160,6 +170,10 @@ class SyncSSH(object):
 
         self._filestore.add(fileitem, attrs, self._remote)
         self._dbstore.add(fileitem, attrs)
+
+    def _store_acl(self, item):
+        # TODO: store ACL into database
+        pass
 
     @property
     def section(self):
@@ -221,10 +235,18 @@ class SyncSSH(object):
             raise AttributeError, "Section not definied"
 
         for path in paths:
-            stdout = self._get_item_list(path, "d")
+            stdout = self._get_list_item(path, "d")
             for remote_item in stdout.readlines():
-                self._store(remote_item)
+                self._store_item(remote_item)
 
-            stdout = self._get_item_list(path, "f")
+            stdout = self._get_list_item(path, "f")
             for remote_item in stdout.readlines():
-                self._store(remote_item)
+                self._store_item(remote_item)
+
+            if self.acl_sync:
+                stdout = self._get_list_acl(path)
+                while True:
+                    acl = list(itertools.takewhile(lambda x: x != "", stdout))
+                    if len(a) == 0:
+                        break
+                    self._store_acl(acl)

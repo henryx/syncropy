@@ -42,7 +42,10 @@ class DBManager(object):
                 "INSERT INTO status VALUES('month', 0, current_timestamp)"
                ]
 
-        index = ["CREATE INDEX idx_store_1 ON store(grace, source, dataset, element, element_mtime, element_ctime)"]
+        index = [
+                 "CREATE INDEX idx_store_1 ON store(grace, source, dataset)",
+                 "CREATE INDEX idx_store_2 ON store(grace, source, dataset, element, element_mtime, element_ctime)"
+                ]
 
         cursor = connection.cursor()
 
