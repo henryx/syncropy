@@ -43,7 +43,7 @@ class Main(object):
             self._mode = "day"
         elif opt in ["-m"]:
             self._mode = "month"
-        elif opt in ["w"]:
+        elif opt in ["-w"]:
             self._mode = "week"
         elif opt in ["-?", "--help"]:
             self.usage(0)
