@@ -101,7 +101,7 @@ class Sync(object):
                 message = ex
                 logger.error("Error while retrieving data for " +
                                    item + ": " + str(message))
-                
+
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
 
@@ -247,6 +247,6 @@ class SyncSSH(object):
                 stdout = self._get_list_acl(path)
                 while True:
                     acl = list(itertools.takewhile(lambda x: x != "", stdout))
-                    if len(a) == 0:
+                    if len(acl) == 0:
                         break
                     self._store_acl(acl)
