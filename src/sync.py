@@ -246,7 +246,7 @@ class SyncSSH(object):
             if self.acl_sync:
                 stdout = self._get_list_acl(path)
                 while True:
-                    acl = list(itertools.takewhile(lambda x: x != "", stdout))
+                    acl = list(itertools.takewhile(lambda x: x != "\n", stdout))
                     if len(acl) == 0:
                         break
                     self._store_acl(acl)
