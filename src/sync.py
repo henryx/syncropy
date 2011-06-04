@@ -136,7 +136,7 @@ class SyncSSH(object):
         self._remote.send_cmd(
                         "find " +
                         path +
-                        r" -print0 | xargs -0 getfacl -t")
+                        r" -print0 | xargs -0 getfacl")
 
         stdout = self._remote.get_stdout()
         return stdout
@@ -160,6 +160,38 @@ class SyncSSH(object):
 
         return result
 
+    def _get_item_acl(self, item):
+        result = {}
+        name = ""
+        user = []
+        group = []
+        mask = "" 
+
+        perms = {}
+
+        for line in item:
+            if line[:6] == "# file":
+                name = "/" + line[8:].strip("\n")
+            elif line[:4] == "user":
+                if line[4:6] != "::":
+                    perms["uid"] = line.split(":")[1]
+                    perms["attrs"] = line.split(":")[2].strip("\n")
+                    user.append(perms)
+            elif line[:5] == "group":
+                if line[5:7] != "::":
+                    perms["gid"] = line.split(":")[1]
+                    perms["attrs"] = line.split(":")[2].strip("\n")
+                    group.append(perms)
+            elif line[:4] == "mask":
+                mask = line.split(":")[2].strip("\n")
+
+        result["name"] = name
+        result["user"] = user
+        result["group"] = group
+        result["mask"]= mask
+        
+        return result
+
     def _store_item(self, item):
         filedata = item.strip("\n").split(";/")
 
@@ -172,8 +204,9 @@ class SyncSSH(object):
         self._dbstore.add(fileitem, attrs)
 
     def _store_acl(self, item):
+        acl = self._get_item_acl(item)
         # TODO: store ACL into database
-        pass
+                
 
     @property
     def section(self):
