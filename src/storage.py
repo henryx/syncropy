@@ -84,7 +84,7 @@ class DbStorage(object):
 
     def _check_dataset_exist(self):
         query = src.queries.Select()
-        query.set_table("store")
+        query.set_table("attrs")
         query.set_cols("count(*)")
         query.set_filter("grace = %s", self._mode)
         query.set_filter("source = %s", self._section, src.queries.SQL_AND)
@@ -104,7 +104,8 @@ class DbStorage(object):
     def _del_dataset(self):
         # NOTE: for convenience, these statements has written in direct form
         delete = [
-            "DELETE FROM store WHERE source = %s AND grace = %s AND dataset = %s"
+            "DELETE FROM attrs WHERE source = %s AND grace = %s AND dataset = %s",
+            "DELETE FROM acls WHERE source = %s AND grace = %s AND dataset = %s"
         ]
 
         cur = self._con.cursor()
@@ -147,14 +148,13 @@ class DbStorage(object):
         cur.close()
 
     def item_exist(self, item, attrs):
-
         cur_dataset = self.get_last_dataset()
 
         if cur_dataset == 0:
             cur_dataset = 1
 
         query = src.queries.Select()
-        query.set_table("store")
+        query.set_table("attrs")
         query.set_cols("count(*)")
         query.set_filter("grace = %s", self._mode)
         query.set_filter("source = %s", self._section, src.queries.SQL_AND)
@@ -178,16 +178,19 @@ class DbStorage(object):
 
     def _add_element(self, element, attributes):
         ins = src.queries.Insert("%s")
-        ins.set_table("store")
+        ins.set_table("attrs")
         ins.set_data(source=self._section,
                         dataset=self._dataset,
                         grace=self._mode,
                         element=element.decode("utf-8"),
-                        element_type=attributes["type"],
                         element_user=attributes["user"],
                         element_group=attributes["group"],
                         element_ctime=attributes["ctime"],
                         element_mtime=attributes["mtime"])
+
+        if attributes["type"] == "pl":
+            ins.set_data(element_type="f")
+
         ins.build()
         try:
             cur = self._con.cursor()
@@ -199,9 +202,39 @@ class DbStorage(object):
             print ins.get_values()
             sys.exit(-1)
 
-    def add(self, item, attrs):
-        if not attrs["type"] == "d":
+    def _add_acl(self, item, acl, idtype):
+        ins = src.queries.Insert("%s")
+
+        cur = self._con.cursor()
+        ins.set_table("acls")
+        ins.set_data(source=self._section,
+                    dataset=self._dataset,
+                    grace=self._mode,
+                    element=item,
+                    perms=acl["attrs"])
+        
+        if idtype == "u":
+            ins.set_data(id=acl["uid"],
+                    id_type=idtype)
+        else:
+            ins.set_data(id=acl["gid"],
+                    id_type=idtype)
+
+        ins.build()
+        cur.execute(ins.get_statement(), ins.get_values())
+
+        cur.close()
+
+    def add(self, item, attrs=None, acls=None):
+        if attrs:
             self._add_element(item, attrs)
+
+        if acls:
+            for user in acls["user"]: 
+                self._add_acl(item, user, "u")
+
+            for group in acls["group"]:
+                self._add_acl(item, group, "g")
 
 class FsStorage(object):
     _cfg = None

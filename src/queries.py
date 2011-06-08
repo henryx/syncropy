@@ -18,7 +18,7 @@ class Common(object):
     _delimiter = None
     _statement = None
     _data = None
-    
+
     def __init__(self, delimiter=None):
         self._delimiter = delimiter
         self._data = {"tables": [],
@@ -51,7 +51,7 @@ class Select(Common):
         super(Select, self).__init__()
 
     def set_cols(self, colname):
-       self._data["cols"].append(colname)
+        self._data["cols"].append(colname)
 
     def set_filter(self, filter, value=None, attachment=None):
         if value:

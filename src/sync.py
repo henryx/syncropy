@@ -165,7 +165,6 @@ class SyncSSH(object):
         name = ""
         user = []
         group = []
-        mask = "" 
 
         perms = {}
 
@@ -182,31 +181,27 @@ class SyncSSH(object):
                     perms["gid"] = line.split(":")[1]
                     perms["attrs"] = line.split(":")[2].strip("\n")
                     group.append(perms)
-            elif line[:4] == "mask":
-                mask = line.split(":")[2].strip("\n")
 
         result["name"] = name
         result["user"] = user
         result["group"] = group
-        result["mask"]= mask
-        
+
         return result
 
     def _store_item(self, item):
         filedata = item.strip("\n").split(";/")
 
         fileitem = "/" + filedata[1]
-        attrs = self._get_item_attrs(filedata[0])
-        if attrs["type"] == "f" and self._dbstore.item_exist(fileitem, attrs):
-            attrs["type"] = "pl"
+        attributes = self._get_item_attrs(filedata[0])
+        if attributes["type"] == "f" and self._dbstore.item_exist(fileitem, attributes):
+            attributes["type"] = "pl"
 
-        self._filestore.add(fileitem, attrs, self._remote)
-        self._dbstore.add(fileitem, attrs)
+        self._filestore.add(fileitem, attributes, self._remote)
+        self._dbstore.add(fileitem, attrs=attributes)
 
     def _store_acl(self, item):
         acl = self._get_item_acl(item)
-        # TODO: store ACL into database
-                
+        self._dbstore.add(acl["name"], acls=acl)
 
     @property
     def section(self):
@@ -268,18 +263,22 @@ class SyncSSH(object):
             raise AttributeError, "Section not definied"
 
         for path in paths:
-            stdout = self._get_list_item(path, "d")
-            for remote_item in stdout.readlines():
-                self._store_item(remote_item)
-
-            stdout = self._get_list_item(path, "f")
-            for remote_item in stdout.readlines():
-                self._store_item(remote_item)
+            dirs = self._get_list_item(path, "d")
+            files = self._get_list_item(path, "f")
 
             if self.acl_sync:
-                stdout = self._get_list_acl(path)
-                while True:
-                    acl = list(itertools.takewhile(lambda x: x != "\n", stdout))
-                    if len(acl) == 0:
-                        break
-                    self._store_acl(acl)
+                acls = self._get_list_acl(path)
+            else:
+                acls = []
+
+            for remote_item in dirs.readlines():
+                self._store_item(remote_item)
+
+            for remote_item in files.readlines():
+                self._store_item(remote_item)
+
+            while True:
+                acl = list(itertools.takewhile(lambda x: x != "\n", acls))
+                if len(acl) == 0:
+                    break
+                self._store_acl(acl)
