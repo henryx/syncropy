@@ -166,18 +166,16 @@ class SyncSSH(object):
         user = []
         group = []
 
-        perms = {}
-
         for line in item:
             if line[:6] == "# file":
                 name = "/" + line[8:].strip("\n")
-            elif line[:4] == "user":
-                if line[4:6] != "::":
+            elif line[:4] == "user" and line[4:6] != "::":
+                    perms = {}
                     perms["uid"] = line.split(":")[1]
                     perms["attrs"] = line.split(":")[2].strip("\n")
                     user.append(perms)
-            elif line[:5] == "group":
-                if line[5:7] != "::":
+            elif line[:5] == "group" and line[5:7] != "::":
+                    perms = {}
                     perms["gid"] = line.split(":")[1]
                     perms["attrs"] = line.split(":")[2].strip("\n")
                     group.append(perms)
