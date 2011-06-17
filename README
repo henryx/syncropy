@@ -1,0 +1,93 @@
+Syncropy backup system
+----------------------
+
+Link: http://code.google.com/p/syncropy
+
+
+Description:
+------------
+
+Syncropy is a backup system for remote machines. It is similar of other systems
+(e.g. rsnapshot) but it has some differences
+
+Features:
+---------
+
+It use SSH for check and download data.
+It manage four distinct datasets (hour, day, week, month).
+It save space with hard link creation.
+It save data attribute (owner, group, permission, ACL) into database.
+
+Dependencies:
+-------------
+
+ - Python 2.5 or more;
+ - Paramiko;
+ - PsycoPG;
+ - An instance of PostgreSQL.
+
+Installation:
+-------------
+
+Just extract code into a directory and use it
+
+Usage:
+------
+
+Usage is simpliest:
+
+$ python syncropy.py --cfg=<cfgfile> -h # hour backup
+$ python syncropy.py --cfg=<cfgfile> -d # day backup
+$ python syncropy.py --cfg=<cfgfile> -w # week backup
+$ python syncropy.py --cfg=<cfgfile> -m # month backup
+
+Where <cfgfile> is a file structured like the syncropy.cfg reported in the
+archive. Some notes:
+
+ - It is possible to have multiple configuration files, where each file has
+   different parameters.
+ - While database and general sections are global, it is possible to set any number
+   of sections, one per server.
+
+This is an example of configuration file:
+
+[general]
+repository = /var/backups/servers
+
+log_file = logfile.log
+log_level = INFO
+
+hour_grace = 24
+day_grace = 6
+week_grace = 4
+month_grace = 12
+
+[database]
+host = localhost
+name = backups
+user = sysdba
+password = masterkey
+
+[server1]
+type = ssh
+remote_user = root
+remote_password = secret
+remote_host = 192.168.1.100
+remote_port = 22
+path = /home
+store_acl = yes
+
+[server2]
+type = ssh
+remote_user = foo
+remote_password = bar
+remote_host = 192.168.1.101
+remote_port = 49152
+path = /home/foo
+store_acl = no
+
+Caveats:
+--------
+
+Because syncropy use hard links to store its dataset, its use is guaranteed on
+linux or unix environments.
