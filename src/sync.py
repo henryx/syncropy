@@ -9,9 +9,9 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import itertools
-import logging
+#import logging
 import logging.handlers
-import sys
+#import sys
 
 import src.protocols
 import src.storage
@@ -52,7 +52,7 @@ class Sync(object):
         del self._mode
 
     def execute(self):
-        protocols = {}
+        #protocols = {}
         fsstore = None
         dbstore = None
 

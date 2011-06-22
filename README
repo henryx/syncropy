@@ -10,6 +10,11 @@ Description:
 Syncropy is a backup system for remote machines. It is similar of other systems
 (e.g. rsnapshot) but it has some differences
 
+Licence:
+--------
+
+Syncropy is released under GPLv2 (see GPL.txt for details)
+
 Features:
 ---------
 
