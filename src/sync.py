@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@ymail.com)
+Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@gmail.com)
 Project       Syncropy
 Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
@@ -98,9 +98,8 @@ class Sync(object):
 
                     ssh.sync(paths)
             except Exception as ex:
-                message = ex
                 logger.error("Error while retrieving data for " +
-                                   item + ": " + str(message))
+                                   item + ": " + ex.message)
 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
@@ -260,6 +259,12 @@ class SyncSSH(object):
         if not self._section:
             raise AttributeError, "Section not definied"
 
+        if self._cfg.get(self._section, "pre_command") != "":
+            self._remote.send_cmd(self._cfg.get(self._section, "pre_command"))
+            if self._remote.is_err_cmd():
+                # FIXME: in this mode, I log only first error message written in stderr
+                raise Exception(self._remote.get_errstr()[0])
+
         for path in paths:
             dirs = self._get_list_item(path, "d")
             files = self._get_list_item(path, "f")
@@ -280,3 +285,9 @@ class SyncSSH(object):
                 if len(acl) == 0:
                     break
                 self._store_acl(acl)
+
+            if self._cfg.get(self._section, "post_command") != "":
+                self._remote.send_cmd(self._cfg.get(self._section, "post_command"))
+                if self._remote.is_err_cmd():
+                    # FIXME: in this mode, I log only first error message written in stderr
+                    raise Exception(self._remote.get_errstr()[0])

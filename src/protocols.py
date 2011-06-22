@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@ymail.com)
+Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@gmail.com)
 Project       Syncropy
 Description   A backup system
 License       GPL version 2 (see GPL.txt for details)
@@ -8,11 +8,14 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import logging
 import paramiko
 
 class SSH(object):
     _cfg = None
     _client = None
+    _errstr = None
+    _logger = None
     _stdin = None
     _stdout = None
     _stderr = None
@@ -20,6 +23,7 @@ class SSH(object):
 
     def __init__(self, cfg):
         self._cfg = cfg
+        self._logger = logging.getLogger("Syncropy")
 
     def connect(self, section):
         self._client = paramiko.SSHClient()
@@ -44,17 +48,18 @@ class SSH(object):
     def get_stdout(self):
         return self._stdout
     
+    def get_errstr(self):
+        return self._errstr
+    
     def is_err_cmd(self):
         error = 0
-        errstr = []
+        self._errstr = []
         for value in self._stderr:
             error = error + 1
-            errstr.append(value.strip("\n"))
+            if value.strip("\n") != "":
+                self._errstr.append(value.strip("\n"))
 
         if error > 0:
-            for value in errstr:
-                print value
-
             return True
         else:
             return False
