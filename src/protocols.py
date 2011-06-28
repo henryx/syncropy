@@ -28,6 +28,7 @@ class SSH(object):
     def connect(self, section):
         self._client = paramiko.SSHClient()
         self._client.load_system_host_keys()
+        self._client.set_missing_host_key_policy(paramiko.WarningPolicy())
         self._client.connect(
                              hostname=self._cfg.get(section, "remote_host"),
                              port=self._cfg.getint(section, "remote_port"),
