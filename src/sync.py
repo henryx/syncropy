@@ -99,7 +99,10 @@ class Sync(object):
                     ssh.sync(paths)
             except Exception as ex:
                 logger.error("Error while retrieving data for " +
-                                   item + ": " + ex.message)
+                                   item + ": " + ex[0])
+                for error in ex:
+                    for line in error:
+                        logger.error("    " + line)
 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")
@@ -262,8 +265,7 @@ class SyncSSH(object):
         if self._cfg.get(self._section, "pre_command") != "":
             self._remote.send_cmd(self._cfg.get(self._section, "pre_command"))
             if self._remote.is_err_cmd():
-                # FIXME: in this mode, I log only first error message written in stderr
-                raise Exception(self._remote.get_errstr()[0])
+                raise Exception(self._remote.get_errstr())
 
         for path in paths:
             dirs = self._get_list_item(path, "d")
@@ -289,5 +291,4 @@ class SyncSSH(object):
             if self._cfg.get(self._section, "post_command") != "":
                 self._remote.send_cmd(self._cfg.get(self._section, "post_command"))
                 if self._remote.is_err_cmd():
-                    # FIXME: in this mode, I log only first error message written in stderr
-                    raise Exception(self._remote.get_errstr()[0])
+                    raise Exception(self._remote.get_errstr())

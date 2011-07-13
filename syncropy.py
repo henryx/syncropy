@@ -10,7 +10,6 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import ConfigParser
-import os
 import sys
 import src.sync
 
