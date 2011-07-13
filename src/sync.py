@@ -98,8 +98,7 @@ class Sync(object):
 
                     ssh.sync(paths)
             except Exception as ex:
-                logger.error("Error while retrieving data for " +
-                                   item + ": " + ex[0])
+                logger.error("Error while retrieving data for " +item)
                 for error in ex:
                     for line in error:
                         logger.error("    " + line)
