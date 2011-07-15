@@ -287,7 +287,7 @@ class SyncSSH(object):
                     break
                 self._store_acl(acl)
 
-            if self._cfg.get(self._section, "post_command") != "":
-                self._remote.send_cmd(self._cfg.get(self._section, "post_command"))
-                if self._remote.is_err_cmd():
-                    raise Exception(self._remote.get_errstr())
+        if self._cfg.get(self._section, "post_command") != "":
+            self._remote.send_cmd(self._cfg.get(self._section, "post_command"))
+            if self._remote.is_err_cmd():
+                raise Exception(self._remote.get_errstr())
