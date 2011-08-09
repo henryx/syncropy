@@ -19,6 +19,7 @@ import src.storage
 class Sync(object):
     _cfg = None
     _mode = None
+    _reload = None
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -51,6 +52,18 @@ class Sync(object):
     def mode(self):
         del self._mode
 
+    @property
+    def dataset_reload(self):
+        return self._reload
+
+    @dataset_reload.setter
+    def dataset_reload(self, value):
+        self._reload = value
+
+    @dataset_reload.deleter
+    def dataset_reload(self):
+        del self._reload
+
     def execute(self):
         #protocols = {}
         fsstore = None
@@ -73,10 +86,11 @@ class Sync(object):
 
         dataset = dbstore.get_last_dataset()
 
-        if dataset >= self._cfg.getint("general", self.mode + "_grace"):
-            dataset = 1
-        else:
-            dataset = dataset + 1
+        if not self._reload:
+            if dataset >= self._cfg.getint("general", self.mode + "_grace"):
+                dataset = 1
+            else:
+                dataset = dataset + 1
 
         logger.debug("Last dataset for mode " + self.mode + ": " +str(dataset))
 
@@ -100,8 +114,8 @@ class Sync(object):
             except Exception as ex:
                 logger.error("Error while retrieving data for " +item)
                 for error in ex:
-                    if type(error) == str:
-                        logger.error("    " + error)
+                    if type(error) in [str, int]:
+                        logger.error("    " + str(error))
                     else:
                         for line in error:
                             logger.error("    " + line)

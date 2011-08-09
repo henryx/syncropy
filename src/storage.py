@@ -190,6 +190,8 @@ class DbStorage(object):
 
         if attributes["type"] == "pl":
             ins.set_data(element_type="f")
+        else:
+            ins.set_data(element_type=attributes["type"])
 
         ins.build()
         try:
