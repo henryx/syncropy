@@ -141,3 +141,36 @@ class Update(Common):
         if self._data["where"]:
             self._statement = " ".join([self._statement, "WHERE",
                                         self._data["where"]])
+
+class Delete(Common):
+    def __init__(self):
+        super(Delete, self).__init__()
+
+    def filter(self, filter, value=None, attachment=None):
+        if value:
+            self._data["values"].append(value)
+
+        if not attachment:
+            self._data["where"] = filter
+        else:
+            if attachment in [SQL_AND, SQL_OR]:
+                self._data["where"] = " ".join([self._data["where"],
+                                                attachment, filter])
+            else:
+                # FIXME: Need to generate an exception?
+                pass
+
+    def build(self):
+        # FIXME: Need to generate an exception if self._data["tables"] > 1 ?
+        self._statement = " ".join(["DELETE FROM", self._data["tables"][0]])
+
+        for i in range(len(self._data["cols"])):
+            update = " = ".join([self._data["cols"][i], self._delimiter])
+            if i == 0:
+                self._statement = " ".join([self._statement, update])
+            else:
+                self._statement = ", ".join([self._statement, update])
+
+        if self._data["where"]:
+            self._statement = " ".join([self._statement, "WHERE",
+                                        self._data["where"]])

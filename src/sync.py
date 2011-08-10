@@ -20,6 +20,7 @@ class Sync(object):
     _cfg = None
     _mode = None
     _reload = None
+    _remove_data = None
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -64,6 +65,18 @@ class Sync(object):
     def dataset_reload(self):
         del self._reload
 
+    @property
+    def dataset_remove(self):
+        return self._reload
+
+    @dataset_remove.setter
+    def dataset_remove(self, value):
+        self._remove_data = value
+
+    @dataset_remove.deleter
+    def dataset_remove(self):
+        del self._remove_data
+
     def execute(self):
         #protocols = {}
         fsstore = None
@@ -78,50 +91,59 @@ class Sync(object):
         self._set_log(filename=self._cfg.get("general", "log_file"),
                       level=self._cfg.get("general", "log_level"))
         logger = logging.getLogger("Syncropy")
-        logger.info("Beginning backup")
 
         sections = self._cfg.sections()
         sections.remove("general")
         sections.remove("database")
 
-        dataset = dbstore.get_last_dataset()
+        if not self._remove_data == None:
+            # FIXME: when I set the dataset, I control if the old dataset is to remove.
+            #        So, call remove_dataset() is useless
+            fsstore.dataset = self._remove_data
+            dbstore.dataset = self._remove_data
+            
+            fsstore.remove_dataset()
+            dbstore.remove_dataset()
+        else:
+            logger.info("Beginning backup")
+            dataset = dbstore.get_last_dataset()
 
-        if not self._reload:
-            if dataset >= self._cfg.getint("general", self.mode + "_grace"):
-                dataset = 1
-            else:
-                dataset = dataset + 1
+            if not self._reload:
+                if dataset >= self._cfg.getint("general", self.mode + "_grace"):
+                    dataset = 1
+                else:
+                    dataset = dataset + 1
+            logger.debug("Last dataset for mode " + self.mode + ": " + str(dataset))
 
-        logger.debug("Last dataset for mode " + self.mode + ": " +str(dataset))
+            fsstore.dataset = dataset
+            dbstore.dataset = dataset
 
-        for item in sections:
-            try:
-                paths = self._cfg.get(item, "path").split(",")
+            for item in sections:
+                try:
+                    paths = self._cfg.get(item, "path").split(",")
 
-                fsstore.section = item
-                dbstore.section = item
-                fsstore.dataset = dataset
-                dbstore.dataset = dataset
+                    fsstore.section = item
+                    dbstore.section = item
 
-                if self._cfg.get(item, "type") == "ssh":
-                    ssh = SyncSSH(self._cfg)
-                    ssh.section = item
-                    ssh.filestore = fsstore
-                    ssh.dbstore = dbstore
-                    ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
+                    if self._cfg.get(item, "type") == "ssh":
+                        ssh = SyncSSH(self._cfg)
+                        ssh.section = item
+                        ssh.filestore = fsstore
+                        ssh.dbstore = dbstore
+                        ssh.acl_sync = self._cfg.getboolean(item, "store_acl")
 
-                    ssh.sync(paths)
-            except Exception as ex:
-                logger.error("Error while retrieving data for " +item)
-                for error in ex:
-                    if type(error) in [str, int]:
-                        logger.error("    " + str(error))
-                    else:
-                        for line in error:
-                            logger.error("    " + line)
+                        ssh.sync(paths)
+                except Exception as ex:
+                    logger.error("Error while retrieving data for " +item)
+                    for error in ex:
+                        if type(error) in [str, int]:
+                            logger.error("    " + str(error))
+                        else:
+                            for line in error:
+                                logger.error("    " + line)
 
-        dbstore.set_last_dataset(dataset)
-        logger.info("Ending backup")
+            dbstore.set_last_dataset(dataset)
+            logger.info("Ending backup")
 
 class SyncSSH(object):
     _cfg = None

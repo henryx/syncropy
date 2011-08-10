@@ -57,14 +57,10 @@ class DbStorage(object):
     def dataset(self, value):
         self._dataset = value
 
-        if not self._section:
-            raise AttributeError, "Section not definied"
-
         if not self._mode:
             raise AttributeError, "Grace not definied"
 
-        if self._check_dataset_exist():
-            self._del_dataset()
+        self.remove_dataset()
 
     @dataset.deleter
     def dataset(self):
@@ -82,12 +78,13 @@ class DbStorage(object):
     def section(self):
         del self._section
 
+    """
+    # Useless method
     def _check_dataset_exist(self):
         query = src.queries.Select()
         query.set_table("attrs")
         query.set_cols("count(*)")
         query.set_filter("grace = %s", self._mode)
-        query.set_filter("source = %s", self._section, src.queries.SQL_AND)
         query.set_filter("dataset = %s", self._dataset, src.queries.SQL_AND)
         query.build()
 
@@ -100,18 +97,20 @@ class DbStorage(object):
             return True
         else:
             return False
+    """
 
-    def _del_dataset(self):
-        # NOTE: for convenience, these statements has written in direct form
-        delete = [
-            "DELETE FROM attrs WHERE source = %s AND grace = %s AND dataset = %s",
-            "DELETE FROM acls WHERE source = %s AND grace = %s AND dataset = %s"
-        ]
-
+    def remove_dataset(self):
+        tables = ["attrs", "acls"]
         cur = self._con.cursor()
-
-        for item in delete:
-            cur.execute(item, (self._section, self._mode, self._dataset))
+        
+        for table in tables:
+            delete = src.queries.Delete()
+            delete.set_table(table)
+            delete.filter("grace = %s", self._mode)
+            delete.filter("dataset = %s", self._dataset, src.queries.SQL_AND)
+            
+            delete.build()
+            cur.execute(delete.get_statement(), delete.get_values())
 
         self._con.commit()
         cur.close()
@@ -287,23 +286,14 @@ class FsStorage(object):
     def dataset(self, value):
         self._dataset = value
 
-        if not self._section:
-            raise AttributeError, "Section not definied"
-
         if not self._mode:
             raise AttributeError, "Grace not definied"
 
-        path = "/".join([self._repository, self._mode, str(self._dataset), self._section])
-
-        if os.path.exists(path):
-            self._remove_dataset(path, self._dataset)
+        self.remove_dataset()
 
     @dataset.deleter
     def dataset(self):
         del self._dataset
-
-    def _remove_dataset(self, path, dataset):
-        shutil.rmtree(path)
 
     def _check_structure(self):
         if not os.path.exists(self._repository):
@@ -329,6 +319,12 @@ class FsStorage(object):
                         str(dataset), self._section])
 
         return path
+
+    def remove_dataset(self):
+        path = "/".join([self._repository, self._mode, str(self._dataset)])
+        
+        if os.path.exists(path):
+            shutil.rmtree(path)
 
     def add(self, item, attrs, protocol):
         if attrs["type"] == "d":

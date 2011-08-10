@@ -17,10 +17,12 @@ class Main(object):
     _cfgfile = None
     _mode = None
     _reload = None
+    _remove_data = None
 
     def __init__(self):
         self._mode = ""
         self._reload = False
+        self._remove_data = -1
 
     def usage(self, exit_mode):
         print "Usage:"
@@ -30,6 +32,7 @@ class Main(object):
         print "-w                       Weekly backup is executed"
         print "-m                       Monthly backup is executed"
         print "-r                       Reload a dataset"
+        print "--del-dataset=<dataset>  Remove specified dataset"
 
         sys.exit(exit_mode)
 
@@ -49,6 +52,8 @@ class Main(object):
             self._mode = "week"
         elif opt in ["-r"]:
             self._reload = True
+        elif opt.startswith("--del-dataset="):
+            self._remove_data = opt[14:]
         elif opt in ["-?", "--help"]:
             self.usage(0)
 
@@ -67,6 +72,10 @@ class Main(object):
         s = src.sync.Sync(cfg)
         s.mode = self._mode
         s.dataset_reload = self._reload
+        
+        if not self._remove_data == -1:
+            s.dataset_remove = self._remove_data
+        
         s.execute()
 
 if __name__ == "__main__":
