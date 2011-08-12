@@ -10,8 +10,10 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import ConfigParser
+import logging.handlers
 import sys
-import src.sync
+
+import src.management
 
 class Main(object):
     _cfgfile = None
@@ -57,6 +59,22 @@ class Main(object):
         elif opt in ["-?", "--help"]:
             self.usage(0)
 
+    def _set_log(self, filename, level):
+        LEVELS = {'debug': logging.DEBUG,
+                  'info': logging.INFO,
+                  'warning': logging.WARNING,
+                  'error': logging.ERROR,
+                  'critical': logging.CRITICAL
+                 }
+
+        logger = logging.getLogger("Syncropy")
+        logger.setLevel(LEVELS.get(level.lower(), logging.NOTSET))
+
+        handler = logging.handlers.RotatingFileHandler(
+                filename, maxBytes=20971520, backupCount=20)
+        handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+        logger.addHandler(handler)
+
     def start(self):
         if not self._cfgfile:
             print "Configuration file not found"
@@ -69,13 +87,17 @@ class Main(object):
         cfg = ConfigParser.ConfigParser()
         cfg.readfp(open(self._cfgfile, "r"))
 
-        s = src.sync.Sync(cfg)
+        self._set_log(filename=cfg.get("general", "log_file"),
+                      level=cfg.get("general", "log_level"))
+
+        if self._remove_data == -1:
+            s = src.management.Sync(cfg)
+            s.dataset_reload = self._reload
+        else:
+            s = src.management.Remove(cfg)
+
         s.mode = self._mode
-        s.dataset_reload = self._reload
-        
-        if not self._remove_data == -1:
-            s.dataset_remove = self._remove_data
-        
+
         s.execute()
 
 if __name__ == "__main__":

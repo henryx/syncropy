@@ -8,4 +8,4 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
-__all__ = ["db", "protocols", "queries", "storage", "sync"]
+__all__ = ["db", "management", "protocols", "queries", "storage", "sync"]

@@ -56,11 +56,9 @@ class DbStorage(object):
     @dataset.setter
     def dataset(self, value):
         self._dataset = value
-
+        
         if not self._mode:
             raise AttributeError, "Grace not definied"
-
-        self.remove_dataset()
 
     @dataset.deleter
     def dataset(self):
@@ -78,9 +76,7 @@ class DbStorage(object):
     def section(self):
         del self._section
 
-    """
-    # Useless method
-    def _check_dataset_exist(self):
+    def check_dataset_exist(self):
         query = src.queries.Select()
         query.set_table("attrs")
         query.set_cols("count(*)")
@@ -97,7 +93,6 @@ class DbStorage(object):
             return True
         else:
             return False
-    """
 
     def remove_dataset(self):
         tables = ["attrs", "acls"]
@@ -289,8 +284,6 @@ class FsStorage(object):
         if not self._mode:
             raise AttributeError, "Grace not definied"
 
-        self.remove_dataset()
-
     @dataset.deleter
     def dataset(self):
         del self._dataset
@@ -319,6 +312,14 @@ class FsStorage(object):
                         str(dataset), self._section])
 
         return path
+
+    def check_dataset_exist(self):
+        path = "/".join([self._repository, self._mode, str(self._dataset)])
+
+        if os.path.exists(path):
+            return True
+        else:
+            return False
 
     def remove_dataset(self):
         path = "/".join([self._repository, self._mode, str(self._dataset)])
