@@ -67,12 +67,12 @@ class Sync(Common):
 
         logger.info("Beginning backup")
         dataset = dbstore.get_last_dataset()
-
         if not self._reload:
             if dataset >= self._cfg.getint("general", self.mode + "_grace"):
                 dataset = 1
             else:
                 dataset = dataset + 1
+
         logger.debug("Last dataset for mode " + self.mode + ": " + str(dataset))
 
         fsstore.dataset = dataset

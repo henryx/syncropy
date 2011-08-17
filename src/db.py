@@ -8,7 +8,7 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
-import psycopg2
+from sqlite3 import dbapi2 as sqlite
 
 class DBManager(object):
     _cfg = None
@@ -18,8 +18,7 @@ class DBManager(object):
 
     def _check_schema(self, connection):
         cursor = connection.cursor()
-        cursor.execute("SELECT COUNT(tablename) FROM pg_tables WHERE " +
-                        "schemaname = 'public'")
+        cursor.execute("select count(*) from sqlite_master")
 
         value = cursor.fetchone()[0]
         cursor.close()
@@ -30,6 +29,11 @@ class DBManager(object):
             return True
 
     def _create_schema(self, connection):
+        pragmas = [
+                   "PRAGMA synchronous=OFF",
+                   "PRAGMA journal_mode=WAL"
+                  ]
+        
         tables = [
                   "CREATE TABLE attrs (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_user VARCHAR(50), element_group VARCHAR(50), element_type CHAR(1), element_perm VARCHAR(32), element_mtime INTEGER, element_ctime INTEGER)",
                   "CREATE TABLE acls (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), id VARCHAR(50), id_type VARCHAR(1), perms VARCHAR(3))", 
@@ -50,6 +54,10 @@ class DBManager(object):
 
         cursor = connection.cursor()
 
+        for item in pragmas:
+            cursor.execute(item)
+        connection.commit()
+
         for item in tables:
             cursor.execute(item)
         connection.commit()
@@ -65,11 +73,9 @@ class DBManager(object):
         cursor.close()
 
     def open(self):
-        connection = psycopg2.connect(host=self._cfg.get("database", "host"),
-                                       database=self._cfg.get("database", "name"),
-                                       user=self._cfg.get("database", "user"),
-                                       password=self._cfg.get("database", "password"))
-        
+        db = self._cfg.get("general", "repository") + "/.store.db"
+        connection = sqlite.connect(db)
+
         if not self._check_schema(connection):
             self._create_schema(connection)
 

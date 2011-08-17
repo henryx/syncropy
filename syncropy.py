@@ -11,6 +11,7 @@ __author__ = "enrico"
 
 import ConfigParser
 import logging.handlers
+import os
 import sys
 
 import src.management
@@ -59,6 +60,18 @@ class Main(object):
         elif opt in ["-?", "--help"]:
             self.usage(0)
 
+    def _check_structure(self, repository):
+        if not os.path.exists(repository):
+            try:
+                os.mkdir(repository)
+                os.mkdir(repository + "/hour")
+                os.mkdir(repository + "/day")
+                os.mkdir(repository + "/week")
+                os.mkdir(repository + "/month")
+            except IOError as (errno, strerror):
+                print "I/O error({0}): {1}".format(errno, strerror)
+                sys.exit(1)
+
     def _set_log(self, filename, level):
         LEVELS = {'debug': logging.DEBUG,
                   'info': logging.INFO,
@@ -86,6 +99,8 @@ class Main(object):
 
         cfg = ConfigParser.ConfigParser()
         cfg.readfp(open(self._cfgfile, "r"))
+
+        self._check_structure(cfg.get("general", "repository"))
 
         self._set_log(filename=cfg.get("general", "log_file"),
                       level=cfg.get("general", "log_level"))
