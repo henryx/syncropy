@@ -143,3 +143,22 @@ class Remove(Common):
 
         if dbstore.check_dataset_exist():
             dbstore.remove_dataset()
+
+class Info(Common):
+    _dataset = None
+    
+    def __init__(self, cfg):
+        super(Info, self).__init__(cfg)
+
+    @property
+    def dataset(self):
+        dbstore = src.storage.DbStorage(self._cfg)
+
+        dbstore.mode = self._mode
+        self._dataset = dbstore.get_last_dataset()
+
+        return self._dataset
+
+    @dataset.deleter
+    def dataset(self):
+        del self._dataset

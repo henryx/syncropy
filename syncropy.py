@@ -21,10 +21,12 @@ class Main(object):
     _mode = None
     _reload = None
     _remove_data = None
+    _get_last = None
 
     def __init__(self):
         self._mode = ""
         self._reload = False
+        self._get_last_dataset = False
         self._remove_data = -1
 
     def usage(self, exit_mode):
@@ -36,6 +38,7 @@ class Main(object):
         print "-m                       Monthly backup is executed"
         print "-r                       Reload a dataset"
         print "--del-dataset=<dataset>  Remove specified dataset"
+        print "--get-last-dataset       Return last dataset processed"
 
         sys.exit(exit_mode)
 
@@ -57,6 +60,8 @@ class Main(object):
             self._reload = True
         elif opt.startswith("--del-dataset="):
             self._remove_data = opt[14:]
+        elif opt == "--get-last-dataset":
+            self._get_last_dataset = True
         elif opt in ["-?", "--help"]:
             self.usage(0)
 
@@ -105,6 +110,13 @@ class Main(object):
         self._set_log(filename=cfg.get("general", "log_file"),
                       level=cfg.get("general", "log_level"))
 
+        if self._get_last_dataset:
+            s = src.management.Info(cfg)
+            s.mode = self._mode
+            
+            print s.dataset
+            sys.exit(0)
+
         if self._remove_data == -1:
             s = src.management.Sync(cfg)
             s.dataset_reload = self._reload
@@ -113,7 +125,6 @@ class Main(object):
             s.dataset = self._remove_data
 
         s.mode = self._mode
-
         s.execute()
 
 if __name__ == "__main__":
