@@ -110,6 +110,7 @@ class Main(object):
             s.dataset_reload = self._reload
         else:
             s = src.management.Remove(cfg)
+            s.dataset = self._remove_data
 
         s.mode = self._mode
 
