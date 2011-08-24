@@ -95,7 +95,7 @@ class Main(object):
             s = src.management.Remove(cfg)
             s.dataset = args.del_dataset
 
-        s.mode = self._mode
+        s.mode = args.mode
         s.execute()
 
 if __name__ == "__main__":
