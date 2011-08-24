@@ -9,6 +9,7 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import argparse
 import ConfigParser
 import logging.handlers
 import os
@@ -17,53 +18,26 @@ import sys
 import src.management
 
 class Main(object):
-    _cfgfile = None
-    _mode = None
-    _reload = None
-    _remove_data = None
-    _get_last = None
+    _args = None
 
     def __init__(self):
-        self._mode = ""
-        self._reload = False
-        self._get_last_dataset = False
-        self._remove_data = -1
-
-    def usage(self, exit_mode):
-        print "Usage:"
-        print "-c<file> or --cfg=<file> Use the specified configuration file"
-        print "-h                       Hourly backup is executed"
-        print "-d                       Daily backup is executed"
-        print "-w                       Weekly backup is executed"
-        print "-m                       Monthly backup is executed"
-        print "-r                       Reload a dataset"
-        print "--del-dataset=<dataset>  Remove specified dataset"
-        print "--get-last-dataset       Return last dataset processed"
-
-        sys.exit(exit_mode)
-
-    def parseopt(self, opt):
-        if opt.startswith("-c") or opt.startswith("--cfg="):
-            if opt[1] == "-":
-                self._cfgfile = opt[6:]
-            else:
-                self._cfgfile = opt[2:]
-        elif opt in ["-h"]:
-            self._mode = "hour"
-        elif opt in ["-d"]:
-            self._mode = "day"
-        elif opt in ["-m"]:
-            self._mode = "month"
-        elif opt in ["-w"]:
-            self._mode = "week"
-        elif opt in ["-r"]:
-            self._reload = True
-        elif opt.startswith("--del-dataset="):
-            self._remove_data = opt[14:]
-        elif opt == "--get-last-dataset":
-            self._get_last_dataset = True
-        elif opt in ["-?", "--help"]:
-            self.usage(0)
+        self._args = argparse.ArgumentParser(description="Syncropy")
+        self._args.add_argument("-c", "--cfg", metavar="<file>", type=file,
+                                required=True, help="Use the specified configuration file")
+        self._args.add_argument("-H", dest="mode", action='store_const',
+                                const="hour", help="Hourly backup is executed")
+        self._args.add_argument("-d", dest="mode", action='store_const',
+                                const="day", help="Daily backup is executed")
+        self._args.add_argument("-w", dest="mode", action='store_const',
+                                const="week", help="Weekly backup is executed")
+        self._args.add_argument("-m", dest="mode", action='store_const',
+                                const="month", help="Monthly backup is executed")
+        self._args.add_argument("-r", "--reload-dataset", action='store_const',
+                                const=True, help="Reload a dataset")
+        self._args.add_argument("--del-dataset", metavar="<dataset>", default=-1,
+                                help="Remove specified dataset")
+        self._args.add_argument("--get-last-dataset", action='store_const',
+                                const=True, help="Return last dataset processed")
 
     def _check_structure(self, repository):
         if not os.path.exists(repository):
@@ -93,36 +67,33 @@ class Main(object):
         handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
         logger.addHandler(handler)
 
-    def start(self):
-        if not self._cfgfile:
-            print "Configuration file not found"
-            self.usage(1)
-
-        if not self._mode:
+    def start(self, sysargs):
+        args = self._args.parse_args(sysargs)
+        
+        if not args.mode:
             print "Backup mode not definied"
-            self.usage(1)
 
         cfg = ConfigParser.ConfigParser()
-        cfg.readfp(open(self._cfgfile, "r"))
+        cfg.readfp(args.cfg)
 
         self._check_structure(cfg.get("general", "repository"))
 
         self._set_log(filename=cfg.get("general", "log_file"),
                       level=cfg.get("general", "log_level"))
 
-        if self._get_last_dataset:
+        if args.get_last_dataset:
             s = src.management.Info(cfg)
-            s.mode = self._mode
+            s.mode = args.mode
             
             print s.dataset
             sys.exit(0)
 
-        if self._remove_data == -1:
+        if args.del_dataset == -1:
             s = src.management.Sync(cfg)
-            s.dataset_reload = self._reload
+            s.dataset_reload = args.reload_dataset
         else:
             s = src.management.Remove(cfg)
-            s.dataset = self._remove_data
+            s.dataset = args.del_dataset
 
         s.mode = self._mode
         s.execute()
@@ -132,8 +103,5 @@ if __name__ == "__main__":
 
     #pycallgraph.start_trace()
     main = Main()
-
-    for item in sys.argv[1:]:
-        main.parseopt(item)
-    main.start()
+    main.start(sys.argv[1:])
     #pycallgraph.make_dot_graph('graph.png')
