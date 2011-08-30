@@ -1,0 +1,14 @@
+2.0 ():
+- Added options for:
+  - Reload a dataset;
+  - Delete a dataset;
+  - Report last dataset.
+- Added pre and post command in configuration file.
+- Changed options for select the dataset to be processed.
+- Revised most of code (now Python 2.7 is required)
+
+1.1 (2011-07-20):
+- Corrected bug when storing attributes of files (and directories) into database
+
+1.0 (2011-06-17):
+Initial release

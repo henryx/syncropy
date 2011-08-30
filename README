@@ -26,7 +26,7 @@ It save data attribute (owner, group, permission, ACL) into database.
 Dependencies:
 -------------
 
- - Python 2.5 or more;
+ - Python 2.7 or more;
  - Paramiko;
  - PsycoPG;
  - An instance of PostgreSQL.
@@ -41,13 +41,13 @@ Usage:
 
 Usage is simpliest:
 
-$ python syncropy.py --cfg=<cfgfile> -h # hour backup
-$ python syncropy.py --cfg=<cfgfile> -d # day backup
-$ python syncropy.py --cfg=<cfgfile> -w # week backup
-$ python syncropy.py --cfg=<cfgfile> -m # month backup
+$ python syncropy.py --cfg=<cfgfile> -H # hour backup
+$ python syncropy.py --cfg=<cfgfile> -D # day backup
+$ python syncropy.py --cfg=<cfgfile> -W # week backup
+$ python syncropy.py --cfg=<cfgfile> -M # month backup
 
 Where <cfgfile> is a file structured like the syncropy.cfg reported in the
-archive. Some notes:
+archive. For other options, use -h switch. Some notes:
 
  - It is possible to have multiple configuration files, where each file has
    different parameters.
@@ -90,6 +90,7 @@ remote_host = 192.168.1.101
 remote_port = 49152
 path = /home/foo
 store_acl = no
+
 
 Caveats:
 --------

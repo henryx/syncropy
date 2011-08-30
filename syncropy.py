@@ -26,15 +26,15 @@ class Main(object):
                                 required=True, help="Use the specified configuration file")
         self._args.add_argument("-H", dest="mode", action='store_const',
                                 const="hour", help="Hourly backup is executed")
-        self._args.add_argument("-d", dest="mode", action='store_const',
+        self._args.add_argument("-D", dest="mode", action='store_const',
                                 const="day", help="Daily backup is executed")
-        self._args.add_argument("-w", dest="mode", action='store_const',
+        self._args.add_argument("-W", dest="mode", action='store_const',
                                 const="week", help="Weekly backup is executed")
-        self._args.add_argument("-m", dest="mode", action='store_const',
+        self._args.add_argument("-M", dest="mode", action='store_const',
                                 const="month", help="Monthly backup is executed")
         self._args.add_argument("-r", "--reload-dataset", action='store_const',
                                 const=True, help="Reload a dataset")
-        self._args.add_argument("--del-dataset", metavar="<dataset>", default=-1,
+        self._args.add_argument("--del-dataset", metavar="<dataset>",
                                 help="Remove specified dataset")
         self._args.add_argument("--get-last-dataset", action='store_const',
                                 const=True, help="Return last dataset processed")
@@ -69,6 +69,8 @@ class Main(object):
 
     def start(self, sysargs):
         args = self._args.parse_args(sysargs)
+        
+        print args
         
         if not args.mode:
             print "Backup mode not definied"
