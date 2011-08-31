@@ -69,9 +69,7 @@ class Main(object):
 
     def start(self, sysargs):
         args = self._args.parse_args(sysargs)
-        
-        print args
-        
+
         if not args.mode:
             print "Backup mode not definied"
 
@@ -90,7 +88,7 @@ class Main(object):
             print s.dataset
             sys.exit(0)
 
-        if args.del_dataset == -1:
+        if not args.del_dataset:
             s = src.management.Sync(cfg)
             s.dataset_reload = args.reload_dataset
         else:
