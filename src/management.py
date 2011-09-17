@@ -101,7 +101,7 @@ class Sync(Common):
             except Exception as ex:
                 logger.error("Error while retrieving data for " +item)
                 for error in ex:
-                    if type(error) in [str, int]:
+                    if type(error) in [str, int, long]:
                         logger.error("    " + str(error))
                     else:
                         for line in error:
