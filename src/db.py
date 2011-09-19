@@ -8,8 +8,7 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
-import kinterbasdb
-kinterbasdb.init(type_conv=200)
+import psycopg2
 
 class DBManager(object):
     _cfg = None
@@ -19,10 +18,8 @@ class DBManager(object):
 
     def _check_schema(self, connection):
         cursor = connection.cursor()
-        cursor.execute(" ".join(["SELECT COUNT(rdb$relation_name)",
-                                 "FROM rdb$relations WHERE",
-                                 "rdb$relation_name NOT LIKE 'RDB$%'",
-                                 "AND rdb$relation_name NOT LIKE 'MON$%'"]))
+        cursor.execute("SELECT COUNT(tablename) FROM pg_tables WHERE " +
+                       "schemaname = 'public'")
 
         value = cursor.fetchone()[0]
         cursor.close()
@@ -68,19 +65,10 @@ class DBManager(object):
         cursor.close()
 
     def open(self):
-        connection = kinterbasdb.connect(host=self._cfg.get("database", "host"),
-                                              database=self._cfg.get("database", "name"),
-                                              user=self._cfg.get("database", "user"),
-                                              password=self._cfg.get("database", "password"),
-                                              charset="UTF8")
-
-        connection.set_type_trans_in({
-            "FIXED": kinterbasdb.typeconv_fixed_decimal.fixed_conv_in_precise
-        })
-
-        connection.set_type_trans_out({
-            "FIXED": kinterbasdb.typeconv_fixed_decimal.fixed_conv_out_precise
-        })
+        connection = psycopg2.connect(host=self._cfg.get("database", "host"),
+                                      database=self._cfg.get("database", "name"),
+                                      user=self._cfg.get("database", "user"),
+                                      password=self._cfg.get("database", "password"))
 
         if not self._check_schema(connection):
             self._create_schema(connection)

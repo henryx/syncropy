@@ -16,8 +16,6 @@ import src.sync
 class Common(object):
     _cfg = None
     _mode = None
-    _fsstore = None
-    _dbstore = None
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -101,7 +99,7 @@ class Sync(Common):
             except Exception as ex:
                 logger.error("Error while retrieving data for " +item)
                 for error in ex:
-                    if type(error) in [str, int, long]:
+                    if type(error) in [str, int]:
                         logger.error("    " + str(error))
                     else:
                         for line in error:

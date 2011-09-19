@@ -80,8 +80,8 @@ class DbStorage(object):
         query = src.queries.Select()
         query.set_table("attrs")
         query.set_cols("count(*)")
-        query.set_filter("grace = ?", self._mode)
-        query.set_filter("dataset = ?", self._dataset, src.queries.SQL_AND)
+        query.set_filter("grace = %s", self._mode)
+        query.set_filter("dataset = %s", self._dataset, src.queries.SQL_AND)
         query.build()
 
         cur = self._con.cursor()
@@ -101,8 +101,8 @@ class DbStorage(object):
         for table in tables:
             delete = src.queries.Delete()
             delete.set_table(table)
-            delete.filter("grace = ?", self._mode)
-            delete.filter("dataset = ?", self._dataset, src.queries.SQL_AND)
+            delete.filter("grace = %s", self._mode)
+            delete.filter("dataset = %s", self._dataset, src.queries.SQL_AND)
             
             delete.build()
             cur.execute(delete.get_statement(), delete.get_values())
@@ -115,7 +115,7 @@ class DbStorage(object):
 
         select.set_table("status")
         select.set_cols("actual")
-        select.set_filter("grace = ?", self._mode)
+        select.set_filter("grace = %s", self._mode)
         select.build()
 
         cur = self._con.cursor()
@@ -129,11 +129,11 @@ class DbStorage(object):
     def set_last_dataset(self, value):
         now = datetime.today()
 
-        upd = src.queries.Update("?")
+        upd = src.queries.Update("%s")
         upd.set_table("status")
         upd.set_data(actual=value)
         upd.set_data(last_run=now.strftime("%Y-%m-%d %H:%M:%S"))
-        upd.filter("grace = ?", self._mode)
+        upd.filter("grace = %s", self._mode)
         upd.build()
 
         cur = self._con.cursor()
@@ -150,12 +150,12 @@ class DbStorage(object):
         query = src.queries.Select()
         query.set_table("attrs")
         query.set_cols("count(*)")
-        query.set_filter("grace = ?", self._mode)
-        query.set_filter("source = ?", self._section, src.queries.SQL_AND)
-        query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
-        query.set_filter("element = ?", item, src.queries.SQL_AND)
-        query.set_filter("element_mtime = ?", attrs["mtime"], src.queries.SQL_AND)
-        query.set_filter("element_ctime = ?", attrs["ctime"], src.queries.SQL_AND)
+        query.set_filter("grace = %s", self._mode)
+        query.set_filter("source = %s", self._section, src.queries.SQL_AND)
+        query.set_filter("dataset = %s", cur_dataset, src.queries.SQL_AND)
+        query.set_filter("element = %s", item.decode("utf-8"), src.queries.SQL_AND)
+        query.set_filter("element_mtime = %s", attrs["mtime"], src.queries.SQL_AND)
+        query.set_filter("element_ctime = %s", attrs["ctime"], src.queries.SQL_AND)
         query.build()
 
         cur = self._con.cursor()
@@ -171,12 +171,12 @@ class DbStorage(object):
             return False
 
     def _add_element(self, element, attributes):
-        ins = src.queries.Insert("?")
+        ins = src.queries.Insert("%s")
         ins.set_table("attrs")
         ins.set_data(source=self._section,
                         dataset=self._dataset,
                         grace=self._mode,
-                        element=element,
+                        element=element.decode("utf-8"),
                         element_user=attributes["user"],
                         element_group=attributes["group"],
                         element_ctime=attributes["ctime"],
@@ -200,10 +200,9 @@ class DbStorage(object):
                 else:
                     for line in error:
                         self._logger.error("    " + line)
-            sys.exit(-1)
 
     def _add_acl(self, item, acl, idtype):
-        ins = src.queries.Insert("?")
+        ins = src.queries.Insert("%s")
 
         cur = self._con.cursor()
         ins.set_table("acls")
