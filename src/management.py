@@ -61,7 +61,6 @@ class Sync(Common):
 
         sections = self._cfg.sections()
         sections.remove("general")
-        sections.remove("database")
 
         logger.info("Beginning backup")
         dataset = dbstore.get_last_dataset()
@@ -138,9 +137,6 @@ class Remove(Common):
 
         if fsstore.check_dataset_exist():
             fsstore.remove_dataset()
-
-        if dbstore.check_dataset_exist():
-            dbstore.remove_dataset()
 
 class Info(Common):
     _dataset = None
