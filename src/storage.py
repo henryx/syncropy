@@ -11,7 +11,7 @@ __author__ = "enrico"
 from datetime import datetime
 
 import logging
-import os, sys
+import os
 import shutil
 import src.db
 import src.queries
@@ -42,74 +42,59 @@ class DbStorage(object):
             self._con.commit()
             self._con.close()
 
-    @property
-    def mode(self):
-        return self._mode
+    def _add_acl(self, item, acl, idtype):
+        ins = src.queries.Insert("?")
 
-    @mode.setter
-    def mode(self, value):
-        self._mode = value
-
-    @mode.deleter
-    def mode(self):
-        del self._mode
-
-    @property
-    def dataset(self):
-        return self._dataset
-
-    @dataset.setter
-    def dataset(self, value):
-        self._dataset = value
-        
-        if not self._mode:
-            raise AttributeError, "Grace not definied"
-
-    @dataset.deleter
-    def dataset(self):
-        del self._dataset
-
-    @property
-    def section(self):
-        return self._section
-
-    @section.setter
-    def section(self, value):
-        self._section = value
-        
-        if not self._dataset:
-            raise AttributeError, "Dataset not definied"
-        else:
-            if self._con:
-                self._con.commit()
-                self._con.close()
-
-            dbm = src.db.DBManager(self._cfg)
-            self._con = dbm.open("/".join([self._cfg.get("general", "repository"),
-                                 self._mode,
-                                 str(self._dataset),
-                                 self._section,
-                                 ".store.db"]))
-
-    @section.deleter
-    def section(self):
-        del self._section
-
-    def remove_dataset(self):
-        tables = ["attrs", "acls"]
         cur = self._con.cursor()
-        
-        for table in tables:
-            delete = src.queries.Delete()
-            delete.set_table(table)
-            delete.filter("grace = ?", self._mode)
-            delete.filter("dataset = ?", self._dataset, src.queries.SQL_AND)
-            
-            delete.build()
-            cur.execute(delete.get_statement(), delete.get_values())
+        ins.set_table("acls")
+        ins.set_data(source=self._section,
+                    dataset=self._dataset,
+                    grace=self._mode,
+                    element=item,
+                    perms=acl["attrs"])
 
-        self._con.commit()
+        if idtype == "u":
+            ins.set_data(id=acl["uid"],
+                    id_type=idtype)
+        else:
+            ins.set_data(id=acl["gid"],
+                    id_type=idtype)
+
+        ins.build()
+        cur.execute(ins.get_statement(), ins.get_values())
+
         cur.close()
+
+    def _add_element(self, element, attributes):
+        ins = src.queries.Insert("?")
+        ins.set_table("attrs")
+        ins.set_data(source=self._section,
+                        dataset=self._dataset,
+                        grace=self._mode,
+                        element=element.decode("utf-8"),
+                        element_user=attributes["user"],
+                        element_group=attributes["group"],
+                        element_ctime=attributes["ctime"],
+                        element_mtime=attributes["mtime"])
+
+        if attributes["type"] == "pl":
+            ins.set_data(element_type="f")
+        else:
+            ins.set_data(element_type=attributes["type"])
+
+        ins.build()
+        try:
+            cur = self._con.cursor()
+            cur.execute(ins.get_statement(), ins.get_values())
+            cur.close()
+        except Exception as ex:
+            self._logger.error("Error while retrieving data for " + element)
+            for error in ex:
+                if type(error) in [str, int]:
+                    self._logger.error("    " + str(error))
+                else:
+                    for line in error:
+                        self._logger.error("    " + line)
 
     def get_last_dataset(self):
         select = src.queries.Select()
@@ -171,60 +156,6 @@ class DbStorage(object):
         else:
             return False
 
-    def _add_element(self, element, attributes):
-        ins = src.queries.Insert("?")
-        ins.set_table("attrs")
-        ins.set_data(source=self._section,
-                        dataset=self._dataset,
-                        grace=self._mode,
-                        element=element.decode("utf-8"),
-                        element_user=attributes["user"],
-                        element_group=attributes["group"],
-                        element_ctime=attributes["ctime"],
-                        element_mtime=attributes["mtime"])
-
-        if attributes["type"] == "pl":
-            ins.set_data(element_type="f")
-        else:
-            ins.set_data(element_type=attributes["type"])
-
-        ins.build()
-        try:
-            cur = self._con.cursor()
-            cur.execute(ins.get_statement(), ins.get_values())
-            cur.close()
-        except Exception as ex:
-            self._logger.error("Error while retrieving data for " + element)
-            for error in ex:
-                if type(error) in [str, int]:
-                    self._logger.error("    " + str(error))
-                else:
-                    for line in error:
-                        self._logger.error("    " + line)
-
-    def _add_acl(self, item, acl, idtype):
-        ins = src.queries.Insert("?")
-
-        cur = self._con.cursor()
-        ins.set_table("acls")
-        ins.set_data(source=self._section,
-                    dataset=self._dataset,
-                    grace=self._mode,
-                    element=item,
-                    perms=acl["attrs"])
-        
-        if idtype == "u":
-            ins.set_data(id=acl["uid"],
-                    id_type=idtype)
-        else:
-            ins.set_data(id=acl["gid"],
-                    id_type=idtype)
-
-        ins.build()
-        cur.execute(ins.get_statement(), ins.get_values())
-
-        cur.close()
-
     def add(self, item, attrs=None, acls=None):
         if attrs:
             self._add_element(item, attrs)
@@ -235,6 +166,75 @@ class DbStorage(object):
 
             for group in acls["group"]:
                 self._add_acl(item, group, "g")
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, value):
+        self._mode = value
+
+    @mode.deleter
+    def mode(self):
+        del self._mode
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @dataset.setter
+    def dataset(self, value):
+        self._dataset = value
+
+        if not self._mode:
+            raise AttributeError, "Grace not definied"
+
+    @dataset.deleter
+    def dataset(self):
+        del self._dataset
+
+    @property
+    def section(self):
+        return self._section
+
+    @section.setter
+    def section(self, value):
+        self._section = value
+
+        if not self._dataset:
+            raise AttributeError, "Dataset not definied"
+        else:
+            if self._con:
+                self._con.commit()
+                self._con.close()
+
+            dbm = src.db.DBManager(self._cfg)
+            self._con = dbm.open("/".join([self._cfg.get("general", "repository"),
+                                 self._mode,
+                                 str(self._dataset),
+                                 self._section,
+                                 ".store.db"]))
+
+    @section.deleter
+    def section(self):
+        del self._section
+
+    def remove_dataset(self):
+        tables = ["attrs", "acls"]
+        cur = self._con.cursor()
+
+        for table in tables:
+            delete = src.queries.Delete()
+            delete.set_table(table)
+            delete.filter("grace = ?", self._mode)
+            delete.filter("dataset = ?", self._dataset, src.queries.SQL_AND)
+
+            delete.build()
+            cur.execute(delete.get_statement(), delete.get_values())
+
+        self._con.commit()
+        cur.close()
 
 class FsStorage(object):
     _cfg = None
