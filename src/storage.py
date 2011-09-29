@@ -18,7 +18,9 @@ import src.queries
 
 class DbStorage(object):
     _cfg = None
+    
     _con = None
+    _oldcon = None
     _syscon = None
 
     _dataset = None
@@ -41,6 +43,10 @@ class DbStorage(object):
         if self._con:
             self._con.commit()
             self._con.close()
+
+        if self._oldcon:
+            self._oldcon.rollback()
+            self._oldcon.close()
 
     def _add_acl(self, item, acl, idtype):
         ins = src.queries.Insert("?")
@@ -128,11 +134,6 @@ class DbStorage(object):
         cur.close()
 
     def item_exist(self, item, attrs):
-        cur_dataset = self.get_last_dataset()
-
-        if cur_dataset == 0:
-            cur_dataset = 1
-
         query = src.queries.Select()
         query.set_table("attrs")
         query.set_cols("count(*)")
@@ -144,7 +145,7 @@ class DbStorage(object):
         query.set_filter("element_ctime = ?", attrs["ctime"], src.queries.SQL_AND)
         query.build()
 
-        cur = self._con.cursor()
+        cur = self._oldcon.cursor()
         cur.execute(query.get_statement(), query.get_values())
 
         res = cur.fetchone()[0]
@@ -166,6 +167,22 @@ class DbStorage(object):
 
             for group in acls["group"]:
                 self._add_acl(item, group, "g")
+
+    def remove_dataset(self):
+        tables = ["attrs", "acls"]
+        cur = self._con.cursor()
+
+        for table in tables:
+            delete = src.queries.Delete()
+            delete.set_table(table)
+            delete.filter("grace = ?", self._mode)
+            delete.filter("dataset = ?", self._dataset, src.queries.SQL_AND)
+
+            delete.build()
+            cur.execute(delete.get_statement(), delete.get_values())
+
+        self._con.commit()
+        cur.close()
 
     @property
     def mode(self):
@@ -205,10 +222,6 @@ class DbStorage(object):
         if not self._dataset:
             raise AttributeError, "Dataset not definied"
         else:
-            if self._con:
-                self._con.commit()
-                self._con.close()
-
             dbm = src.db.DBManager(self._cfg)
             self._con = dbm.open("/".join([self._cfg.get("general", "repository"),
                                  self._mode,
@@ -216,25 +229,22 @@ class DbStorage(object):
                                  self._section,
                                  ".store.db"]))
 
+            cur_dataset = self.get_last_dataset()
+
+            if cur_dataset == 0:
+                cur_dataset = 1
+
     @section.deleter
     def section(self):
+        if self._con:
+                self._con.commit()
+                self._con.close()
+
+        if self._oldcon:
+            self._oldcon.rollback()
+            self._oldcon.close()
+
         del self._section
-
-    def remove_dataset(self):
-        tables = ["attrs", "acls"]
-        cur = self._con.cursor()
-
-        for table in tables:
-            delete = src.queries.Delete()
-            delete.set_table(table)
-            delete.filter("grace = ?", self._mode)
-            delete.filter("dataset = ?", self._dataset, src.queries.SQL_AND)
-
-            delete.build()
-            cur.execute(delete.get_statement(), delete.get_values())
-
-        self._con.commit()
-        cur.close()
 
 class FsStorage(object):
     _cfg = None
@@ -251,54 +261,6 @@ class FsStorage(object):
         self._repository = self._cfg.get("general", "repository")
 
         self._logger = logging.getLogger("Syncropy")
-
-    @property
-    def mode(self):
-        return self._mode
-
-    @mode.setter
-    def mode(self, value):
-        self._mode = value
-
-    @mode.deleter
-    def mode(self):
-        del self._mode
-
-    @property
-    def section(self):
-        return self._section
-
-    @section.setter
-    def section(self, value):
-        self._section = value
-        
-        if not os.path.exists("/".join([self._cfg.get("general", "repository"),
-                                 self._mode,
-                                 str(self._dataset),
-                                 self._section])):
-            os.makedirs("/".join([self._cfg.get("general", "repository"),
-                                 self._mode,
-                                 str(self._dataset),
-                                 self._section]))
-
-    @section.deleter
-    def section(self):
-        del self._section
-
-    @property
-    def dataset(self):
-        return self._dataset
-
-    @dataset.setter
-    def dataset(self, value):
-        self._dataset = value
-
-        if not self._mode:
-            raise AttributeError, "Grace not definied"
-
-    @dataset.deleter
-    def dataset(self):
-        del self._dataset
 
     def _dataset_path(self, previous):
         if previous:
@@ -339,3 +301,51 @@ class FsStorage(object):
                 protocol.get_file(item, (self._dataset_path(False) + os.path.sep + item))
             except IOError as (errno, strerror):
                 self._logger.error("I/O error({0}) for item {1}: {2}".format(errno, item, strerror))
+
+    @property
+    def mode(self):
+        return self._mode
+
+    @mode.setter
+    def mode(self, value):
+        self._mode = value
+
+    @mode.deleter
+    def mode(self):
+        del self._mode
+
+    @property
+    def section(self):
+        return self._section
+
+    @section.setter
+    def section(self, value):
+        self._section = value
+
+        if not os.path.exists("/".join([self._cfg.get("general", "repository"),
+                                 self._mode,
+                                 str(self._dataset),
+                                 self._section])):
+            os.makedirs("/".join([self._cfg.get("general", "repository"),
+                                 self._mode,
+                                 str(self._dataset),
+                                 self._section]))
+
+    @section.deleter
+    def section(self):
+        del self._section
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @dataset.setter
+    def dataset(self, value):
+        self._dataset = value
+
+        if not self._mode:
+            raise AttributeError, "Grace not definied"
+
+    @dataset.deleter
+    def dataset(self):
+        del self._dataset
