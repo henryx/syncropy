@@ -18,7 +18,7 @@ import src.queries
 
 class DbStorage(object):
     _cfg = None
-    
+
     _con = None
     _oldcon = None
     _syscon = None
@@ -39,7 +39,7 @@ class DbStorage(object):
         if self._syscon:
             self._syscon.commit()
             self._syscon.close()
-        
+
         if self._con:
             self._con.commit()
             self._con.close()
@@ -139,22 +139,24 @@ class DbStorage(object):
         query.set_cols("count(*)")
         query.set_filter("grace = ?", self._mode)
         query.set_filter("source = ?", self._section, src.queries.SQL_AND)
-        query.set_filter("dataset = ?", cur_dataset, src.queries.SQL_AND)
         query.set_filter("element = ?", item.decode("utf-8"), src.queries.SQL_AND)
         query.set_filter("element_mtime = ?", attrs["mtime"], src.queries.SQL_AND)
         query.set_filter("element_ctime = ?", attrs["ctime"], src.queries.SQL_AND)
         query.build()
 
-        cur = self._oldcon.cursor()
-        cur.execute(query.get_statement(), query.get_values())
+        try:
+            cur = self._oldcon.cursor()
+            cur.execute(query.get_statement(), query.get_values())
 
-        res = cur.fetchone()[0]
+            res = cur.fetchone()[0]
 
-        cur.close()
+            cur.close()
 
-        if res > 0:
-            return True
-        else:
+            if res > 0:
+                return True
+            else:
+                return False
+        except:
             return False
 
     def add(self, item, attrs=None, acls=None):
@@ -229,10 +231,19 @@ class DbStorage(object):
                                  self._section,
                                  ".store.db"]))
 
-            cur_dataset = self.get_last_dataset()
+            old_dataset = self._dataset -1
 
-            if cur_dataset == 0:
-                cur_dataset = 1
+            if old_dataset == 0:
+                old_dataset = 7
+
+            try:
+                self._oldcon = dbm.open("/".join([self._cfg.get("general", "repository"),
+                                 self._mode,
+                                 str(old_dataset),
+                                 self._section,
+                                 ".store.db"]))
+            except:
+                self._oldcon = None
 
     @section.deleter
     def section(self):
@@ -286,7 +297,7 @@ class FsStorage(object):
 
     def remove_dataset(self):
         path = "/".join([self._repository, self._mode, str(self._dataset)])
-        
+
         if os.path.exists(path):
             shutil.rmtree(path)
 
