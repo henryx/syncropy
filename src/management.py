@@ -127,13 +127,8 @@ class Remove(Common):
 
     def execute(self):
         fsstore = src.storage.FsStorage(self._cfg)
-        dbstore = src.storage.DbStorage(self._cfg)
-
         fsstore.mode = self._mode
-        dbstore.mode = self._mode
-
         fsstore.dataset = self._dataset
-        dbstore.dataset = self._dataset
 
         if fsstore.check_dataset_exist():
             fsstore.remove_dataset()

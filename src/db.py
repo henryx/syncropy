@@ -45,13 +45,12 @@ class DBManager(object):
             index = []
         else:
             tables = [
-                    "CREATE TABLE attrs (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), element_user VARCHAR(50), element_group VARCHAR(50), element_type CHAR(1), element_perm VARCHAR(32), element_mtime INTEGER, element_ctime INTEGER)",
-                    "CREATE TABLE acls (source VARCHAR(30), grace VARCHAR(5), dataset INTEGER, element VARCHAR(1024), id VARCHAR(50), id_type VARCHAR(1), perms VARCHAR(3))", 
+                    "CREATE TABLE attrs (element VARCHAR(1024), element_user VARCHAR(50), element_group VARCHAR(50), element_type CHAR(1), element_perm VARCHAR(32), element_mtime INTEGER, element_ctime INTEGER)",
+                    "CREATE TABLE acls (element VARCHAR(1024), id VARCHAR(50), id_type VARCHAR(1), perms VARCHAR(3))", 
             ]
             data = []
             index = [
-                    "CREATE INDEX idx_store_1 ON attrs(grace, source, dataset)",
-                    "CREATE INDEX idx_store_2 ON attrs(grace, source, dataset, element, element_mtime, element_ctime)"
+                    "CREATE INDEX idx_store_1 ON attrs(element_mtime, element_ctime)"
             ]
 
         cursor = connection.cursor()

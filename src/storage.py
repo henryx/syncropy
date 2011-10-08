@@ -53,10 +53,7 @@ class DbStorage(object):
 
         cur = self._con.cursor()
         ins.set_table("acls")
-        ins.set_data(source=self._section,
-                    dataset=self._dataset,
-                    grace=self._mode,
-                    element=item,
+        ins.set_data(element=item,
                     perms=acl["attrs"])
 
         if idtype == "u":
@@ -74,14 +71,11 @@ class DbStorage(object):
     def _add_element(self, element, attributes):
         ins = src.queries.Insert("?")
         ins.set_table("attrs")
-        ins.set_data(source=self._section,
-                        dataset=self._dataset,
-                        grace=self._mode,
-                        element=element.decode("utf-8"),
-                        element_user=attributes["user"],
-                        element_group=attributes["group"],
-                        element_ctime=attributes["ctime"],
-                        element_mtime=attributes["mtime"])
+        ins.set_data(element=element.decode("utf-8"),
+                     element_user=attributes["user"],
+                     element_group=attributes["group"],
+                     element_ctime=attributes["ctime"],
+                     element_mtime=attributes["mtime"])
 
         if attributes["type"] == "pl":
             ins.set_data(element_type="f")
@@ -137,9 +131,7 @@ class DbStorage(object):
         query = src.queries.Select()
         query.set_table("attrs")
         query.set_cols("count(*)")
-        query.set_filter("grace = ?", self._mode)
-        query.set_filter("source = ?", self._section, src.queries.SQL_AND)
-        query.set_filter("element = ?", item.decode("utf-8"), src.queries.SQL_AND)
+        query.set_filter("element = ?", item.decode("utf-8"))
         query.set_filter("element_mtime = ?", attrs["mtime"], src.queries.SQL_AND)
         query.set_filter("element_ctime = ?", attrs["ctime"], src.queries.SQL_AND)
         query.build()
@@ -156,7 +148,7 @@ class DbStorage(object):
                 return True
             else:
                 return False
-        except:
+        except Exception as ex:
             return False
 
     def add(self, item, attrs=None, acls=None):
@@ -169,22 +161,6 @@ class DbStorage(object):
 
             for group in acls["group"]:
                 self._add_acl(item, group, "g")
-
-    def remove_dataset(self):
-        tables = ["attrs", "acls"]
-        cur = self._con.cursor()
-
-        for table in tables:
-            delete = src.queries.Delete()
-            delete.set_table(table)
-            delete.filter("grace = ?", self._mode)
-            delete.filter("dataset = ?", self._dataset, src.queries.SQL_AND)
-
-            delete.build()
-            cur.execute(delete.get_statement(), delete.get_values())
-
-        self._con.commit()
-        cur.close()
 
     @property
     def mode(self):
@@ -233,8 +209,8 @@ class DbStorage(object):
 
             old_dataset = self._dataset -1
 
-            if old_dataset == 0:
-                old_dataset = 7
+            if old_dataset <= 0:
+                old_dataset = self._cfg.getint("general", self.mode + "_grace")
 
             try:
                 self._oldcon = dbm.open("/".join([self._cfg.get("general", "repository"),
