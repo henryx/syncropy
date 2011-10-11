@@ -51,9 +51,8 @@ class DbStorage(object):
     def _add_acl(self, item, acl, idtype):
         ins = src.queries.Insert("?")
 
-        cur = self._con.cursor()
         ins.set_table("acls")
-        ins.set_data(element=item,
+        ins.set_data(element=item.decode("utf-8"),
                     perms=acl["attrs"])
 
         if idtype == "u":
@@ -64,9 +63,19 @@ class DbStorage(object):
                     id_type=idtype)
 
         ins.build()
-        cur.execute(ins.get_statement(), ins.get_values())
 
-        cur.close()
+        try:
+            cur = self._con.cursor()
+            cur.execute(ins.get_statement(), ins.get_values())
+            cur.close()
+        except Exception as ex:
+            self._logger.error("Error whilea add acl for " + item + " into database")
+            for error in ex:
+                if type(error) in [str, int]:
+                    self._logger.error("    " + str(error))
+                else:
+                    for line in error:
+                        self._logger.error("    " + line)
 
     def _add_element(self, element, attributes):
         ins = src.queries.Insert("?")
@@ -88,7 +97,7 @@ class DbStorage(object):
             cur.execute(ins.get_statement(), ins.get_values())
             cur.close()
         except Exception as ex:
-            self._logger.error("Error while retrieving data for " + element)
+            self._logger.error("Error whilea add element " + element + " into database")
             for error in ex:
                 if type(error) in [str, int]:
                     self._logger.error("    " + str(error))
