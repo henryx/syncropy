@@ -103,6 +103,9 @@ class Sync(Common):
                     else:
                         for line in error:
                             logger.error("    " + line)
+            finally:
+                del fsstore.section
+                del dbstore.section
 
         dbstore.set_last_dataset(dataset)
         logger.info("Ending backup")

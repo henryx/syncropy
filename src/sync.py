@@ -108,6 +108,47 @@ class SyncSSH(object):
         acl = self._get_item_acl(item)
         self._dbstore.add(acl["name"], acls=acl)
 
+    def sync(self, paths):
+        if not self._filestore:
+            raise AttributeError, "Filestore not definied"
+
+        if not self._dbstore:
+            raise AttributeError, "Dbstore not definied"
+
+        if not self._section:
+            raise AttributeError, "Section not definied"
+
+        if self._cfg.get(self._section, "pre_command") != "":
+            self._remote.send_cmd(self._cfg.get(self._section, "pre_command"))
+            if self._remote.is_err_cmd():
+                raise Exception(self._remote.get_errstr())
+
+        for path in paths:
+            dirs = self._get_list_item(path, "d")
+            files = self._get_list_item(path, "f")
+
+            if self.acl_sync:
+                acls = self._get_list_acl(path)
+            else:
+                acls = []
+
+            for remote_item in dirs.readlines():
+                self._store_item(remote_item)
+
+            for remote_item in files.readlines():
+                self._store_item(remote_item)
+
+            while True:
+                acl = list(itertools.takewhile(lambda x: x != "\n", acls))
+                if len(acl) == 0:
+                    break
+                self._store_acl(acl)
+
+        if self._cfg.get(self._section, "post_command") != "":
+            self._remote.send_cmd(self._cfg.get(self._section, "post_command"))
+            if self._remote.is_err_cmd():
+                raise Exception(self._remote.get_errstr())
+
     @property
     def section(self):
         return self._section
@@ -156,44 +197,3 @@ class SyncSSH(object):
     @dbstore.deleter
     def dbstore(self):
         del self._dbstore
-
-    def sync(self, paths):
-        if not self._filestore:
-            raise AttributeError, "Filestore not definied"
-
-        if not self._dbstore:
-            raise AttributeError, "Dbstore not definied"
-
-        if not self._section:
-            raise AttributeError, "Section not definied"
-
-        if self._cfg.get(self._section, "pre_command") != "":
-            self._remote.send_cmd(self._cfg.get(self._section, "pre_command"))
-            if self._remote.is_err_cmd():
-                raise Exception(self._remote.get_errstr())
-
-        for path in paths:
-            dirs = self._get_list_item(path, "d")
-            files = self._get_list_item(path, "f")
-
-            if self.acl_sync:
-                acls = self._get_list_acl(path)
-            else:
-                acls = []
-
-            for remote_item in dirs.readlines():
-                self._store_item(remote_item)
-
-            for remote_item in files.readlines():
-                self._store_item(remote_item)
-
-            while True:
-                acl = list(itertools.takewhile(lambda x: x != "\n", acls))
-                if len(acl) == 0:
-                    break
-                self._store_acl(acl)
-
-        if self._cfg.get(self._section, "post_command") != "":
-            self._remote.send_cmd(self._cfg.get(self._section, "post_command"))
-            if self._remote.is_err_cmd():
-                raise Exception(self._remote.get_errstr())
