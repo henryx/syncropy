@@ -1,4 +1,7 @@
-2.0 (2001-09-05):
+3.0 (2011-10-26):
+- Removed dependency with PostgreSQL.
+
+2.0 (2011-09-05):
 - Added options for:
   - Reload a dataset;
   - Delete a dataset;

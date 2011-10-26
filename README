@@ -3,7 +3,6 @@ Syncropy backup system
 
 Link: http://code.google.com/p/syncropy
 
-
 Description:
 ------------
 
@@ -28,8 +27,6 @@ Dependencies:
 
  - Python 2.7 or more;
  - Paramiko;
- - PsycoPG;
- - An instance of PostgreSQL.
 
 Installation:
 -------------
@@ -67,12 +64,6 @@ day_grace = 6
 week_grace = 4
 month_grace = 12
 
-[database]
-host = localhost
-name = backups
-user = sysdba
-password = masterkey
-
 [server1]
 type = ssh
 remote_user = root
@@ -90,7 +81,6 @@ remote_host = 192.168.1.101
 remote_port = 49152
 path = /home/foo
 store_acl = no
-
 
 Caveats:
 --------
