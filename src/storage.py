@@ -36,17 +36,20 @@ class DbStorage(object):
         self._syscon = dbm.open(self._cfg.get("general", "repository") + "/.syncropy.db", system=True)
 
     def __del__(self):
-        if self._syscon:
-            self._syscon.commit()
-            self._syscon.close()
+        try:
+            if self._syscon:
+                self._syscon.commit()
+                self._syscon.close()
 
-        if self._con:
-            self._con.commit()
-            self._con.close()
+            if self._con:
+                self._con.commit()
+                self._con.close()
 
-        if self._oldcon:
-            self._oldcon.rollback()
-            self._oldcon.close()
+            if self._oldcon:
+                self._oldcon.rollback()
+                self._oldcon.close()
+        except:
+            pass
 
     def _add_acl(self, item, acl, idtype):
         ins = src.queries.Insert("?")
