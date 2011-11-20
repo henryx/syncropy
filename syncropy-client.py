@@ -11,6 +11,7 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import argparse
+import socket
 import sys
 
 def _init_args():
@@ -19,14 +20,28 @@ def _init_args():
 
     return args
 
+def _serve(port):
+    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.bind(('', int(port)))
+
+    s.listen(1)
+    conn, addr = s.accept()
+    data = conn.recv(1024)
+
+    print data
+    
+    conn.close()
+    s.close()
+
 def go(sysargs):
     args = _init_args().parse_args(sysargs)
 
     if not args.port:
         print "Port not definied"
         sys.exit(1)
-
-    print "End"
+    else:
+        _serve(args.port)
+    
 
 if __name__ == "__main__":
     go(sys.argv[1:])
