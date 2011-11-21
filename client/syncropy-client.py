@@ -11,6 +11,7 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import argparse
+import json
 import socket
 import sys
 
@@ -20,17 +21,30 @@ def _init_args():
 
     return args
 
+def _parse(command, conn):
+     cmd = json.loads(command)
+
+     if cmd["command"] == "list":
+         print cmd
+         return True
+     elif cmd["command"] == "exit":
+         return False
+
 def _serve(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(('', int(port)))
 
     s.listen(1)
-    conn, addr = s.accept()
-    data = conn.recv(1024)
 
-    print data
-    
-    conn.close()
+    execute = True
+    while execute:
+        conn, addr = s.accept()
+        print type(addr)
+        data = conn.recv(1024)
+        execute = _parse(data, conn)
+        conn.close()
+
     s.close()
 
 def go(sysargs):
@@ -41,7 +55,6 @@ def go(sysargs):
         sys.exit(1)
     else:
         _serve(args.port)
-    
 
 if __name__ == "__main__":
     go(sys.argv[1:])
