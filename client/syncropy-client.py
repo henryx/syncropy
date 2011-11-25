@@ -11,6 +11,7 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import argparse
+import files
 import json
 import socket
 import sys
@@ -22,13 +23,24 @@ def _init_args():
     return args
 
 def _parse(command, conn):
-     cmd = json.loads(command)
 
-     if cmd["command"] == "list":
-         print cmd
-         return True
-     elif cmd["command"] == "exit":
-         return False
+    try:
+        cmd = json.loads(command)
+    except ValueError:
+        conn.send("Malformed command\n")
+        return True
+
+    if cmd["type"] == "file":
+       if cmd["command"] == "list":
+            res = files.List()
+            res.directory = cmd["directory"]
+            res.acl = cmd["acl"]
+
+            conn.send(res.get())
+            return True
+    elif cmd["type"] == "system":
+        if cmd["command"] == "exit":
+            return False
 
 def _serve(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -40,7 +52,6 @@ def _serve(port):
     execute = True
     while execute:
         conn, addr = s.accept()
-        print type(addr)
         data = conn.recv(1024)
         execute = _parse(data, conn)
         conn.close()
