@@ -8,12 +8,152 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import hashlib
+import json
+import os
+import stat
+
+class Chmod(object):
+    SUID = 0
+    SGID = 0
+    STICKY = 0
+    OWNER_READ = 0
+    OWNER_WRITE = 0
+    OWNER_EXECUTE = 0
+    GROUP_READ = 0
+    GROUP_WRITE = 0
+    GROUP_EXECUTE = 0
+    OTHER_READ = 0
+    OTHER_WRITE = 0
+    OTHER_EXECUTE = 0
+
+    def __init__(self, mode=None):
+        if mode & stat.S_ISUID:
+            self.SUID = 4
+
+        if mode & stat.S_ISGID:
+            self.SGID = 2
+
+        if mode & stat.S_ISVTX:
+            self.STICKY = 1
+
+        if mode & stat.S_IRUSR:
+            self.OWNER_READ = 4
+
+        if mode & stat.S_IWUSR:
+            self.OWNER_WRITE = 2
+
+        if mode & stat.S_IXUSR:
+            self.OWNER_EXECUTE = 1
+
+        if mode & stat.S_IRGRP:
+            self.GROUP_READ = 4
+
+        if mode & stat.S_IWGRP:
+            self.GROUP_WRITE = 2
+
+        if mode & stat.S_IXGRP:
+            self.GROUP_EXECUTE = 1
+
+        if mode & stat.S_IROTH:
+            self.OTHER_READ = 4
+
+        if mode & stat.S_IWOTH:
+            self.OTHER_WRITE = 2
+
+        if mode & stat.S_IXOTH:
+            self.OTHER_EXECUTE = 1
+
+    def to_octal(self):
+        special = self.SUID + self.SGID + self.STICKY
+        owner = self.OWNER_READ + self.OWNER_WRITE + self.OWNER_EXECUTE
+        group = self.GROUP_READ + self.GROUP_WRITE + self.GROUP_EXECUTE
+        other = self.OTHER_READ + self.OTHER_WRITE + self.OTHER_EXECUTE
+
+        return str(special) + str(owner) + str(group) + str(other)
+
+    def __str__(self):
+        result = ""
+
+        result += 'r' if self.OWNER_READ else '-'
+        result += 'w' if self.OWNER_WRITE else '-'
+
+        if self.SUID:
+            result += 'S'
+        elif self.OWNER_EXECUTE:
+            result += 'x'
+        else:
+            result += '-'
+
+        result += 'r' if self.GROUP_READ else '-'
+        result += 'w' if self.GROUP_WRITE else '-'
+
+        if self.SGID:
+            result += 'S'
+        elif self.GROUP_EXECUTE:
+            result += 'x'
+        else:
+            result += '-'
+
+        result += 'r' if self.OTHER_READ else '-'
+        result += 'w' if self.OTHER_WRITE else '-'
+
+        if self.STICKY:
+            result += 'T'
+        elif self.OTHER_EXECUTE:
+            result += 'x'
+        else:
+            result += '-'
+
+        return result
+
 class List(object):
     _directory = None
     _acl = None
 
     def __init__(self):
         pass
+
+    def _compute_acl(self, path):
+        result = {}
+        # TODO: write code for managing ACLs
+        return result
+
+    def _compute_attrs(self, path):
+        result = {}
+        attrs = Chmod(os.stat(path).st_mode)
+
+        if os.path.isdir(path):
+            result["type"] = "directory"
+        else:
+            result["type"] = "file"
+            result["size"] = os.path.getsize(path)
+            result["hash"] = self._hash(path)
+
+        result["atime"] = os.path.getatime(path)
+        result["mtime"] = os.path.getmtime(path)
+        result["ctime"] = os.path.getctime(path)
+        result["mode"] = attrs.to_octal()
+
+        return result
+
+    def _compute_metadata(self, path):
+        result = {}
+
+        result["attrs"] = self._compute_attrs(path)
+
+        if self._acl:
+            result["acl"] = self._compute_acl(path)
+
+        return result
+
+    def _hash(self, path, block_size=2**20):
+        md5 = hashlib.md5()
+                
+        with open(path,'rb') as f:
+            for chunk in iter(lambda: f.read(block_size), ''):
+                md5.update(chunk)
+        return md5.hexdigest()
 
     @property
     def directory(self):
@@ -40,5 +180,26 @@ class List(object):
         del self._acl
 
     def get(self):
-        return "All files are processed\n"
-    
+        result = {}
+        
+        for root, dirs, files in os.walk(self._directory):
+            for directory in dirs:
+                if root[-1:] == "/":
+                    path = root + directory
+                else:
+                    path = root + "/" + directory
+
+                result[path] = self._compute_metadata(path)
+            for filename in files:
+                if root[-1:] == "/":
+                    path = root + filename
+                else:
+                    path = root + "/" + filename
+
+                result[path] = self._compute_metadata(path)
+
+        
+        return json.dumps([result])
+
+if __name__ == "__main__":
+    pass
