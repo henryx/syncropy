@@ -147,14 +147,11 @@ class List(object):
 
         return result
 
-    def _hash(self, path, block_size=2**20):
+    def _hash(self, path, block_size=2**21):
         md5 = hashlib.md5()
 
-        f = open(path, "rb")
-        while True:
+        with open(path, "rb") as f;
             data = f.read(block_size)
-            if not data:
-                break
             md5.update(data)
         return md5.hexdigest()
 
