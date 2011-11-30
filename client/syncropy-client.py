@@ -26,17 +26,17 @@ def _parse(command, conn):
 
     try:
         cmd = json.loads(command)
-    except ValueError:
-        conn.send("Malformed command\n")
+    except ValueError as e:
+        conn.send(b"Malformed command\n")
         return True
 
     if cmd["type"] == "file":
-       if cmd["command"] == "list":
+        if cmd["command"] == "list":
             res = files.List()
             res.directory = cmd["directory"]
             res.acl = cmd["acl"]
 
-            conn.send(res.get())
+            conn.send(res.get().encode())
             return True
     elif cmd["type"] == "system":
         if cmd["command"] == "exit":
@@ -53,7 +53,7 @@ def _serve(port):
     while execute:
         conn, addr = s.accept()
         data = conn.recv(1024)
-        execute = _parse(data, conn)
+        execute = _parse(bytes.decode(data), conn)
         conn.close()
 
     s.close()
@@ -62,7 +62,7 @@ def go(sysargs):
     args = _init_args().parse_args(sysargs)
 
     if not args.port:
-        print "Port not definied"
+        print("Port not definied")
         sys.exit(1)
     else:
         _serve(args.port)

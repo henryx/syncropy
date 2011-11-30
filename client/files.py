@@ -149,10 +149,13 @@ class List(object):
 
     def _hash(self, path, block_size=2**20):
         md5 = hashlib.md5()
-                
-        with open(path,'rb') as f:
-            for chunk in iter(lambda: f.read(block_size), ''):
-                md5.update(chunk)
+
+        f = open(path, "rb")
+        while True:
+            data = f.read(block_size)
+            if not data:
+                break
+            md5.update(data)
         return md5.hexdigest()
 
     @property
@@ -181,23 +184,16 @@ class List(object):
 
     def get(self):
         result = {}
-        
+
         for root, dirs, files in os.walk(self._directory):
             for directory in dirs:
-                if root[-1:] == "/":
-                    path = root + directory
-                else:
-                    path = root + "/" + directory
+                path = root + directory if root[-1:] == "/" else root + "/" + directory
 
                 result[path] = self._compute_metadata(path)
             for filename in files:
-                if root[-1:] == "/":
-                    path = root + filename
-                else:
-                    path = root + "/" + filename
+                path = root + filename if root[-1:] == "/" else root + "/" + filename
 
                 result[path] = self._compute_metadata(path)
-
         
         return json.dumps([result])
 
