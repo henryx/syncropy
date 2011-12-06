@@ -15,6 +15,7 @@ import files
 import json
 import socket
 import sys
+import time
 
 def _init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
@@ -26,21 +27,33 @@ def _parse(command, conn):
 
     try:
         cmd = json.loads(command)
-    except ValueError as e:
-        conn.send(b"Malformed command\n")
+    except ValueError:
+        conn.send("Malformed command\n")
         return True
 
-    if cmd["type"] == "file":
-        if cmd["command"] == "list":
-            res = files.List()
-            res.directory = cmd["directory"]
-            res.acl = cmd["acl"]
+    try:
+        if cmd["context"] == "file":
+            if cmd["command"]["name"] == "list":
+                res = files.List()
+                res.directory = cmd["command"]["directory"]
+                res.acl = cmd["command"]["acl"]
 
-            conn.send(res.get().encode())
+                conn.send(res.get())
+                print "Time to execute: %f" % (t1 - t0)
+
+                return True
+            else:
+                conn.send("Command not found")
+                return True
+        elif cmd["context"] == "system":
+            if cmd["command"]["name"] == "exit":
+                return False
+        else:
+            conn.send("Context not found\n")
             return True
-    elif cmd["type"] == "system":
-        if cmd["command"] == "exit":
-            return False
+    except KeyError:
+        conn.send("Malformed command\n")
+        return True
 
 def _serve(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -53,7 +66,7 @@ def _serve(port):
     while execute:
         conn, addr = s.accept()
         data = conn.recv(1024)
-        execute = _parse(bytes.decode(data), conn)
+        execute = _parse(data, conn)
         conn.close()
 
     s.close()
@@ -62,7 +75,7 @@ def go(sysargs):
     args = _init_args().parse_args(sysargs)
 
     if not args.port:
-        print("Port not definied")
+        print "Port not definied"
         sys.exit(1)
     else:
         _serve(args.port)

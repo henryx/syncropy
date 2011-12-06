@@ -164,7 +164,7 @@ class List(object):
 
     @directory.setter
     def directory(self, value):
-        self._directory = value
+        self._directory = value.encode() # ugly
 
     @directory.deleter
     def directory(self):
@@ -188,11 +188,10 @@ class List(object):
         for root, dirs, files in os.walk(self._directory):
             for directory in dirs:
                 path = root + directory if root[-1:] == "/" else root + "/" + directory
-
                 result[path] = self._compute_metadata(path)
+                
             for filename in files:
                 path = root + filename if root[-1:] == "/" else root + "/" + filename
-
                 result[path] = self._compute_metadata(path)
         
         return json.dumps([result])
