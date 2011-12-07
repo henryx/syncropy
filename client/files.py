@@ -194,7 +194,7 @@ class List(object):
                 path = root + filename if root[-1:] == "/" else root + "/" + filename
                 result[path] = self._compute_metadata(path)
         
-        return json.dumps([result])
+        return json.dumps([result], ensure_ascii=False) # ugly
 
 if __name__ == "__main__":
     pass

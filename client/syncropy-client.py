@@ -15,7 +15,6 @@ import files
 import json
 import socket
 import sys
-import time
 
 def _init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
@@ -39,7 +38,6 @@ def _parse(command, conn):
                 res.acl = cmd["command"]["acl"]
 
                 conn.send(res.get())
-                print "Time to execute: %f" % (t1 - t0)
 
                 return True
             else:
