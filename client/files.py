@@ -196,5 +196,23 @@ class List(object):
         
         return json.dumps([result], ensure_ascii=False) # ugly
 
+class Get(object):
+    _filename = None
+
+    def __init__(self):
+        pass
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+
+    @filename.deleter
+    def filename(self):
+        del self._filename
+
 if __name__ == "__main__":
     pass

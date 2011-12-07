@@ -40,6 +40,9 @@ def _parse(command, conn):
                 conn.send(res.get())
 
                 return True
+            elif cmd["command"]["name"] == "get":
+                res = files.Get()
+                res.filename 
             else:
                 conn.send("Command not found")
                 return True
