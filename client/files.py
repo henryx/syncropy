@@ -13,7 +13,7 @@ import json
 import os
 import stat
 
-class Chmod(object):
+class Stat(object):
     SUID = 0
     SGID = 0
     STICKY = 0
@@ -121,7 +121,7 @@ class List(object):
 
     def _compute_attrs(self, path):
         result = {}
-        attrs = Chmod(os.stat(path).st_mode)
+        attrs = Stat(os.stat(path).st_mode)
 
         if os.path.isdir(path):
             result["type"] = "directory"
