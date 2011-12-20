@@ -42,9 +42,11 @@ def _parse(command, conn):
                 return True
             elif cmd["command"]["name"] == "get":
                 res = files.Get()
-                res.filename 
+                res.filename = cmd["command"]["file"]
+
+                conn.send(res.data())
             else:
-                conn.send("Command not found")
+                conn.send("Command not found\n")
                 return True
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exit":

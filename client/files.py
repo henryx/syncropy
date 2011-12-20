@@ -214,5 +214,10 @@ class Get(object):
     def filename(self):
         del self._filename
 
+    def data(self):
+        f = open(self._filename, "rb")
+        data = f.read()
+        return data
+
 if __name__ == "__main__":
     pass
