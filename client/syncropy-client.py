@@ -40,7 +40,7 @@ def exec_command(cmd, conn):
                 for item in p.stderr.readlines():
                     conn.send("STDERR: " + item + "\n")
         else:
-            conn.send("Command successful\n"
+            conn.send("Command successful\n")
     except subprocess.CalledProcessError as e:
         conn.send("Error: " + e +"\n")
 
