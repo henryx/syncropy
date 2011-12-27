@@ -16,14 +16,13 @@ import json
 import socket
 import sys
 
-def _init_args():
+def init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
     args.add_argument("-p", "--port", metavar="<port>", help="Port wich listen")
 
     return args
 
-def _parse(command, conn):
-
+def parse(command, conn):
     try:
         cmd = json.loads(command)
     except ValueError:
@@ -49,7 +48,9 @@ def _parse(command, conn):
                 conn.send("Command not found\n")
                 return True
         elif cmd["context"] == "system":
-            if cmd["command"]["name"] == "exit":
+            if cmd["command"]["name"] == "exec":
+                
+            elif cmd["command"]["name"] == "exit":
                 return False
         else:
             conn.send("Context not found\n")
@@ -58,7 +59,7 @@ def _parse(command, conn):
         conn.send("Malformed command\n")
         return True
 
-def _serve(port):
+def serve(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     s.bind(('', int(port)))
@@ -69,19 +70,19 @@ def _serve(port):
     while execute:
         conn, addr = s.accept()
         data = conn.recv(1024)
-        execute = _parse(data, conn)
+        execute = parse(data, conn)
         conn.close()
 
     s.close()
 
 def go(sysargs):
-    args = _init_args().parse_args(sysargs)
+    args = init_args().parse_args(sysargs)
 
     if not args.port:
         print "Port not definied"
         sys.exit(1)
     else:
-        _serve(args.port)
+        serve(args.port)
 
 if __name__ == "__main__":
     go(sys.argv[1:])
