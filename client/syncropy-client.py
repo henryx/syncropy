@@ -14,6 +14,7 @@ import argparse
 import files
 import json
 import socket
+import subprocess
 import sys
 
 def init_args():
@@ -21,6 +22,27 @@ def init_args():
     args.add_argument("-p", "--port", metavar="<port>", help="Port wich listen")
 
     return args
+
+def exec_command(cmd, conn):
+    try:
+        p = subprocess.Popen(cmd,
+                             shell=True,
+                             stdout=subprocess.PIPE,
+                             stderr=subprocess.PIPE)
+        sts = p.wait()
+
+        if sts != 0:
+            if p.stdout != None:
+                for item in p.stdout.readlines():
+                    conn.send("STDOUT: " + item + "\n")
+
+            if p.stderr != None:
+                for item in p.stderr.readlines():
+                    conn.send("STDERR: " + item + "\n")
+        else:
+            conn.send("Command successful\n"
+    except subprocess.CalledProcessError as e:
+        conn.send("Error: " + e +"\n")
 
 def parse(command, conn):
     try:
@@ -49,7 +71,8 @@ def parse(command, conn):
                 return True
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
-                
+                exec_command(cmd["command"]["value"])
+                return True
             elif cmd["command"]["name"] == "exit":
                 return False
         else:
