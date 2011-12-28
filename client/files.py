@@ -164,7 +164,10 @@ class List(object):
 
     @directory.setter
     def directory(self, value):
-        self._directory = value.encode() # ugly
+        if type(value) != list:
+            raise ValueError, "Invalid directory list"
+
+        self._directory = value
 
     @directory.deleter
     def directory(self):
@@ -185,15 +188,16 @@ class List(object):
     def get(self):
         result = {}
 
-        for root, dirs, files in os.walk(self._directory):
-            for directory in dirs:
-                path = root + directory if root[-1:] == "/" else root + "/" + directory
-                result[path] = self._compute_metadata(path)
-                
-            for filename in files:
-                path = root + filename if root[-1:] == "/" else root + "/" + filename
-                result[path] = self._compute_metadata(path)
-        
+        for item in self._directory;
+            for root, dirs, files in os.walk(item.encode()): # ugly
+                for directory in dirs:
+                    path = root + directory if root[-1:] == "/" else root + "/" + directory
+                    result[path] = self._compute_metadata(path)
+
+                for filename in files:
+                    path = root + filename if root[-1:] == "/" else root + "/" + filename
+                    result[path] = self._compute_metadata(path)
+
         return json.dumps([result], ensure_ascii=False) # ugly
 
 class Get(object):
