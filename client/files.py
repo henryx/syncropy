@@ -188,7 +188,7 @@ class List(object):
     def get(self):
         result = {}
 
-        for item in self._directory;
+        for item in self._directory:
             for root, dirs, files in os.walk(item.encode()): # ugly
                 for directory in dirs:
                     path = root + directory if root[-1:] == "/" else root + "/" + directory

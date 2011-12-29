@@ -52,6 +52,7 @@ def parse(command, conn):
         return True
 
     try:
+        result = True
         if cmd["context"] == "file":
             if cmd["command"]["name"] == "list":
                 res = files.List()
@@ -59,28 +60,24 @@ def parse(command, conn):
                 res.acl = cmd["command"]["acl"]
 
                 conn.send(res.get())
-
-                return True
             elif cmd["command"]["name"] == "get":
                 res = files.Get()
-                res.filename = cmd["command"]["file"]
+                res.filename = cmd["command"]["filename"]
 
                 conn.send(res.data())
             else:
                 conn.send("Command not found\n")
-                return True
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
-                exec_command(cmd["command"]["value"])
-                return True
+                exec_command(cmd["command"]["value"], conn)
             elif cmd["command"]["name"] == "exit":
-                return False
+                result = False
         else:
             conn.send("Context not found\n")
-            return True
     except KeyError:
         conn.send("Malformed command\n")
-        return True
+
+    return result
 
 def serve(port):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
