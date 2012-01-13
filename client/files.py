@@ -114,9 +114,14 @@ class List(object):
     def __init__(self):
         pass
 
-    def _compute_acl(self, path):
+    def _compute_acl_nt(self, path):
         result = {}
-        # TODO: write code for managing ACLs
+        # TODO: write code for managing ACLs in Windows environment
+        return result
+
+    def _compute_acl_posix(self, path):
+        result = {}
+        # TODO: write code for managing ACLs in Posix environment
         return result
 
     def _compute_attrs(self, path):
@@ -143,7 +148,10 @@ class List(object):
         result["attrs"] = self._compute_attrs(path)
 
         if self._acl:
-            result["acl"] = self._compute_acl(path)
+            if os.name == "nt":
+                result["acl"] = self._compute_acl_nt(path)
+            else:
+                result["acl"] = self._compute_acl_posix(path)
 
         return result
 
