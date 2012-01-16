@@ -10,7 +10,9 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import configparser
 import argparse
+import os
 import sys
 
 def init_args():
@@ -34,12 +36,29 @@ def init_args():
 
     return args
 
+def check_structure(repository):
+    if not os.path.exists(repository):
+        try:
+            os.mkdir(repository)
+            os.mkdir(repository + "/hour")
+            os.mkdir(repository + "/day")
+            os.mkdir(repository + "/week")
+            os.mkdir(repository + "/month")
+        except IOError as err:
+            print("I/O error({0})".format(err))
+            sys.exit(3)
+
 def go(sysargs):
     args = init_args().parse_args(sysargs)
 
     if not args.cfg:
         print("configuration file not specified")
         sys.exit(1)
+    else:
+        cfg = configparser.ConfigParser()
+        cfg.readfp(args.cfg)
+
+    check_structure(cfg.get("general", "repository"))
 
     if not args.mode:
         print("Backup mode not definied")
@@ -51,8 +70,10 @@ def go(sysargs):
 
     if not args.del_dataset:
         # TODO: Write code for remove a dataset
+        pass
     else:
         # TODO: Write code for create a dataset
+        pass
 
 if __name__ == "__main__":
     go(sys.argv[1:])
