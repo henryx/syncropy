@@ -55,11 +55,14 @@ def parse(command, conn):
         result = True
         if cmd["context"] == "file":
             if cmd["command"]["name"] == "list":
-                res = files.List()
-                res.directory = cmd["command"]["directory"]
-                res.acl = cmd["command"]["acl"]
+                try:
+                    res = files.List()
+                    res.directory = cmd["command"]["directory"]
+                    res.acl = cmd["command"]["acl"]
 
-                conn.send(bytes(res.get(), "utf-8"))
+                    conn.send(bytes(res.get(), "utf-8"))
+                except ValueError as ex:
+                    conn.send(bytes(str(ex), "utf-8"))
             elif cmd["command"]["name"] == "get":
                 res = files.Get()
                 res.filename = cmd["command"]["filename"]
