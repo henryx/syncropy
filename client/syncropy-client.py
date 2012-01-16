@@ -69,16 +69,16 @@ def parse(command, conn):
 
                 conn.send(res.data())
             else:
-                conn.send("Command not found\n")
+                conn.send(b"Command not found")
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
                 exec_command(cmd["command"]["value"], conn)
             elif cmd["command"]["name"] == "exit":
                 result = False
         else:
-            conn.send("Context not found\n")
+            conn.send(b"Context not found")
     except KeyError:
-        conn.send(b"Malformed command\n")
+        conn.send(b"Malformed command")
 
     return result
 
