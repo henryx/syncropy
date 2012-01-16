@@ -173,7 +173,7 @@ class List(object):
     @directory.setter
     def directory(self, value):
         if type(value) != list:
-            raise ValueError, "Invalid directory list"
+            raise ValueError("Invalid directory list")
 
         self._directory = value
 
@@ -197,7 +197,7 @@ class List(object):
         result = {}
 
         for item in self._directory:
-            for root, dirs, files in os.walk(item.encode()): # ugly
+            for root, dirs, files in os.walk(item):
                 for directory in dirs:
                     path = root + directory if root[-1:] == "/" else root + "/" + directory
                     result[path] = self._compute_metadata(path)
@@ -206,7 +206,7 @@ class List(object):
                     path = root + filename if root[-1:] == "/" else root + "/" + filename
                     result[path] = self._compute_metadata(path)
 
-        return json.dumps([result], ensure_ascii=False) # ugly
+        return json.dumps([result])
 
 class Get(object):
     _filename = None

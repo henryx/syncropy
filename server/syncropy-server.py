@@ -38,11 +38,11 @@ def go(sysargs):
     args = init_args().parse_args(sysargs)
 
     if not args.cfg:
-        print "configuration file not specified"
+        print("configuration file not specified")
         sys.exit(1)
 
     if not args.mode:
-        print "Backup mode not definied"
+        print("Backup mode not definied")
         sys.exit(2)
 
     if args.get_last_dataset:

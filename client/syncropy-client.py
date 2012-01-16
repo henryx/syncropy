@@ -42,13 +42,13 @@ def exec_command(cmd, conn):
         else:
             conn.send("Command successful\n")
     except subprocess.CalledProcessError as e:
-        conn.send("Error: " + e +"\n")
+        conn.send(b"Error: " + e +"\n")
 
 def parse(command, conn):
     try:
         cmd = json.loads(command)
     except ValueError:
-        conn.send("Malformed command\n")
+        conn.send(b"Malformed command\n")
         return True
 
     try:
@@ -59,7 +59,7 @@ def parse(command, conn):
                 res.directory = cmd["command"]["directory"]
                 res.acl = cmd["command"]["acl"]
 
-                conn.send(res.get())
+                conn.send(bytes(res.get(), "utf-8"))
             elif cmd["command"]["name"] == "get":
                 res = files.Get()
                 res.filename = cmd["command"]["filename"]
@@ -75,7 +75,7 @@ def parse(command, conn):
         else:
             conn.send("Context not found\n")
     except KeyError:
-        conn.send("Malformed command\n")
+        conn.send(b"Malformed command\n")
 
     return result
 
@@ -90,7 +90,7 @@ def serve(port):
     while execute:
         conn, addr = s.accept()
         data = conn.recv(1024)
-        execute = parse(data, conn)
+        execute = parse(data.decode("utf-8"), conn)
         conn.close()
 
     s.close()
@@ -99,7 +99,7 @@ def go(sysargs):
     args = init_args().parse_args(sysargs)
 
     if not args.port:
-        print "Port not definied"
+        print("Port not definied")
         sys.exit(1)
     else:
         serve(args.port)
