@@ -93,7 +93,10 @@ def serve(port):
     while execute:
         conn, addr = s.accept()
         data = conn.recv(1024)
-        execute = parse(data.decode("utf-8"), conn)
+        try:
+            execute = parse(data.decode("utf-8"), conn)
+        except UnicodeDecodeError:
+            pass
         conn.close()
 
     s.close()

@@ -64,7 +64,7 @@ class Stat(object):
         if mode & stat.S_IXOTH:
             self.OTHER_EXECUTE = 1
 
-    def to_octal(self):
+    def mode_to_octal(self):
         special = self.SUID + self.SGID + self.STICKY
         owner = self.OWNER_READ + self.OWNER_WRITE + self.OWNER_EXECUTE
         group = self.GROUP_READ + self.GROUP_WRITE + self.GROUP_EXECUTE
@@ -120,8 +120,54 @@ class List(object):
         return result
 
     def _compute_acl_posix(self, path):
+        # FIXME: this is a quick&dirty code, replace with a native library if possible
+        import subprocess
         result = {}
-        # TODO: write code for managing ACLs in Posix environment
+        name = ""
+        user = []
+        group = []
+        
+        try:
+            p = subprocess.Popen(subprocess.list2cmdline(["getfacl", path]),
+                                 shell=True,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.PIPE)
+            sts = p.wait()
+
+            if sts == 0:
+                for item in p.stdout.readlines():
+                    line = item.decode("utf-8")
+                    if line[:4] == "user" and line[4:6] != "::":
+                        perms = {}
+                        perms["uid"] = line.split(":")[1]
+                        perms["attrs"] = line.split(":")[2].strip("\n")
+                        user.append(perms)
+                    elif line[:5] == "group" and line[5:7] != "::":
+                        perms = {}
+                        perms["gid"] = line.split(":")[1]
+                        perms["attrs"] = line.split(":")[2].strip("\n")
+                        group.append(perms)
+                    """ Useless?
+                    elif line[:6] == "# file":
+                        name = "/" + line[8:].strip("\n")
+
+                result["name"] = name
+                """
+                result["user"] = user
+                result["group"] = group
+            else:
+                if p.stdout != None:
+                    for item in p.stdout.readlines():
+                        print("STDOUT: " + str(item))
+
+                if p.stderr != None:
+                    for item in p.stderr.readlines():
+                        print("STDERR: " + str(item))
+        except subprocess.CalledProcessError as e:
+            # FIXME: manage the exception
+            print(e)
+            pass
+
         return result
 
     def _compute_attrs(self, path):
@@ -138,7 +184,7 @@ class List(object):
         result["atime"] = os.path.getatime(path)
         result["mtime"] = os.path.getmtime(path)
         result["ctime"] = os.path.getctime(path)
-        result["mode"] = attrs.to_octal()
+        result["mode"] = attrs.mode_to_octal()
 
         return result
 
