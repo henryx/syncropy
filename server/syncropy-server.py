@@ -12,6 +12,7 @@ __author__ = "enrico"
 
 import configparser
 import argparse
+import logging.handlers
 import os
 import sys
 
@@ -48,6 +49,22 @@ def check_structure(repository):
             print("I/O error({0})".format(err))
             sys.exit(3)
 
+def set_log(filename, level):
+    LEVELS = {'debug': logging.DEBUG,
+              'info': logging.INFO,
+              'warning': logging.WARNING,
+              'error': logging.ERROR,
+              'critical': logging.CRITICAL
+             }
+
+    logger = logging.getLogger("Syncropy")
+    logger.setLevel(LEVELS.get(level.lower(), logging.NOTSET))
+
+    handler = logging.handlers.RotatingFileHandler(
+            filename, maxBytes=20971520, backupCount=20)
+    handler.setFormatter(logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s"))
+    logger.addHandler(handler)
+
 def go(sysargs):
     args = init_args().parse_args(sysargs)
 
@@ -58,6 +75,8 @@ def go(sysargs):
         cfg = configparser.ConfigParser()
         cfg.readfp(args.cfg)
 
+    set_log(filename=cfg.get("general", "log_file"),
+            level=cfg.get("general", "log_level"))
     check_structure(cfg.get("general", "repository"))
 
     if not args.mode:
