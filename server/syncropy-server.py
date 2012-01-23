@@ -18,8 +18,8 @@ import sys
 
 def init_args():
     args = argparse.ArgumentParser(description="Syncropy")
-    args.add_argument("-c", "--cfg", metavar="<file>", type=file,
-                      required=True, help="Use the specified configuration file")
+    args.add_argument("-c", "--cfg", metavar="<file>", required=True,
+                      help="Use the specified configuration file")
     args.add_argument("-H", dest="mode", action='store_const',
                       const="hour", help="Hourly backup is executed")
     args.add_argument("-D", dest="mode", action='store_const',
@@ -73,7 +73,7 @@ def go(sysargs):
         sys.exit(1)
     else:
         cfg = configparser.ConfigParser()
-        cfg.readfp(args.cfg)
+        cfg.read_file(open(args.cfg, "r"))
 
     set_log(filename=cfg.get("general", "log_file"),
             level=cfg.get("general", "log_level"))
@@ -91,7 +91,7 @@ def go(sysargs):
         # TODO: Write code for remove a dataset
         pass
     else:
-        # TODO: Write code for create a dataset
+        # TODO: Write code for remove a dataset
         pass
 
 if __name__ == "__main__":
