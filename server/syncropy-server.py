@@ -2,7 +2,7 @@
 
 # -*- coding: utf-8 -*-
 """
-Copyright (C) 2010 Enrico Bianchi (enrico.bianchi@gmail.com)
+Copyright (C) 2012 Enrico Bianchi (enrico.bianchi@gmail.com)
 Project       Syncropy-ng
 Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
