@@ -16,6 +16,8 @@ import logging.handlers
 import os
 import sys
 
+import manage
+
 def init_args():
     args = argparse.ArgumentParser(description="Syncropy")
     args.add_argument("-c", "--cfg", metavar="<file>", required=True,
@@ -88,11 +90,12 @@ def go(sysargs):
         sys.exit(0)
 
     if not args.del_dataset:
-        # TODO: Write code for remove a dataset
-        pass
+        s = manage.Sync()
     else:
-        # TODO: Write code for remove a dataset
-        pass
+        s = manage.Remove()
+
+    s.mode = args.mode
+    s.execute()
 
 if __name__ == "__main__":
     go(sys.argv[1:])
