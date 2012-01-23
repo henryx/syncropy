@@ -9,6 +9,8 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import storage
+
 class Common(object):
     _cfg = None
     _mode = None
@@ -46,7 +48,8 @@ class Sync(Common):
         super(Sync, self).__init__(cfg)
 
     def execute(self):
-        pass
+        dbstore = storage.Database(self._cfg)
+        fsstore = storage.Filesystem(self._cfg)
 
 class Remove(Common):
     def __init__(self, cfg):

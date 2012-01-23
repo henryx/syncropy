@@ -90,9 +90,9 @@ def go(sysargs):
         sys.exit(0)
 
     if not args.del_dataset:
-        s = manage.Sync()
+        s = manage.Sync(cfg)
     else:
-        s = manage.Remove()
+        s = manage.Remove(cfg)
 
     s.mode = args.mode
     s.execute()
