@@ -75,13 +75,13 @@ def go(sysargs):
         cfg = configparser.ConfigParser()
         cfg.read_file(open(args.cfg, "r"))
 
-    set_log(filename=cfg.get("general", "log_file"),
-            level=cfg.get("general", "log_level"))
-    check_structure(cfg.get("general", "repository"))
-
     if not args.mode:
         print("Backup mode not definied")
         sys.exit(2)
+
+    set_log(filename=cfg.get("general", "log_file"),
+            level=cfg.get("general", "log_level"))
+    check_structure(cfg.get("general", "repository"))
 
     if args.get_last_dataset:
         # TODO: write code for getting last dataset processed
