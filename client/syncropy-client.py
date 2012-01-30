@@ -119,9 +119,9 @@ def go(sysargs):
         serve(args.port)
 
 if __name__ == "__main__":
-    import pycallgraph
+    #import pycallgraph
 
-    pycallgraph.start_trace()
+    #pycallgraph.start_trace()
     go(sys.argv[1:])
-    pycallgraph.make_dot_graph('graph.png')
+    #pycallgraph.make_dot_graph('graph.png')
 
