@@ -24,6 +24,7 @@ def init_args():
     return args
 
 def exec_command(cmd, conn):
+    message = {}
     try:
         p = subprocess.Popen(cmd,
                              shell=True,
@@ -33,14 +34,21 @@ def exec_command(cmd, conn):
 
         if sts != 0:
             if p.stdout != None:
+                message["result"] = "ko"
                 for item in p.stdout.readlines():
-                    conn.send("STDOUT: " + item + "\n")
+                    string  = "\n".join([string, item])
 
+                message["stdout"] = string
             if p.stderr != None:
                 for item in p.stderr.readlines():
-                    conn.send("STDERR: " + item + "\n")
+                    string  = "\n".join([string, item]
+
+                message["stderr"] = string
         else:
-            conn.send(json.dumps({"result": "ok", "message": "Command successful"}).encode("utf-8"))
+            message["result"] = "ok"
+            message["message"] = "Command successful"
+
+        conn.send(json.dumps(message).encode("utf-8"))
     except subprocess.CalledProcessError as e:
         conn.send(json.dumps({"result": "ko", "error": str(e)}).encode("utf-8"))
 
@@ -111,4 +119,9 @@ def go(sysargs):
         serve(args.port)
 
 if __name__ == "__main__":
+    import pycallgraph
+
+    pycallgraph.start_trace()
     go(sys.argv[1:])
+    pycallgraph.make_dot_graph('graph.png')
+
