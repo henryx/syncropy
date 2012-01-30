@@ -40,15 +40,15 @@ def exec_command(cmd, conn):
                 for item in p.stderr.readlines():
                     conn.send("STDERR: " + item + "\n")
         else:
-            conn.send("Command successful\n")
+            conn.send(json.dumps({"result": "ok", "message": "Command successful"}).encode("utf-8"))
     except subprocess.CalledProcessError as e:
-        conn.send(b"Error: " + e +"\n")
+        conn.send(json.dumps({"result": "ko", "error": str(e)}).encode("utf-8"))
 
 def parse(command, conn):
     try:
         cmd = json.loads(command)
     except ValueError:
-        conn.send(b"Malformed command\n")
+        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}).encode("utf-8"))
         return True
 
     try:
@@ -69,16 +69,16 @@ def parse(command, conn):
 
                 conn.send(res.data())
             else:
-                conn.send(b"Command not found")
+                conn.send(json.dumps({"result": "ko", "message": "Command not found"}).encode("utf-8"))
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
                 exec_command(cmd["command"]["value"], conn)
             elif cmd["command"]["name"] == "exit":
                 result = False
         else:
-            conn.send(b"Context not found")
+            conn.send(json.dumps({"result": "ko", "message": "Context not found"}).encode("utf-8"))
     except KeyError:
-        conn.send(b"Malformed command")
+        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}).encode("utf-8"))
 
     return result
 
