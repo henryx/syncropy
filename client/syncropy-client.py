@@ -41,7 +41,7 @@ def exec_command(cmd, conn):
                 message["stdout"] = string
             if p.stderr != None:
                 for item in p.stderr.readlines():
-                    string  = "\n".join([string, item]
+                    string  = "\n".join([string, item])
 
                 message["stderr"] = string
         else:
@@ -119,9 +119,9 @@ def go(sysargs):
         serve(args.port)
 
 if __name__ == "__main__":
-    #import pycallgraph
+    import pycallgraph
 
-    #pycallgraph.start_trace()
+    pycallgraph.start_trace()
     go(sys.argv[1:])
-    #pycallgraph.make_dot_graph('graph.png')
+    pycallgraph.make_dot_graph('graph.png')
 
