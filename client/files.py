@@ -126,7 +126,7 @@ class List(object):
         name = ""
         user = []
         group = []
-        
+
         try:
             p = subprocess.Popen(subprocess.list2cmdline(["getfacl", path]),
                                  shell=True,
@@ -244,17 +244,17 @@ class List(object):
             for root, dirs, files in os.walk(item):
                 for directory in dirs:
                     result = {}
+                    # FIXME: it not work in Windows environment
                     path = root + directory if root[-1:] == "/" else root + "/" + directory
                     result[path] = self._compute_metadata(path)
                     yield json.dumps([result])
 
                 for filename in files:
                     result = {}
+                    # FIXME: it not work in Windows environment
                     path = root + filename if root[-1:] == "/" else root + "/" + filename
                     result[path] = self._compute_metadata(path)
                     yield json.dumps([result])
-
-        #return json.dumps([result])
 
 class Get(object):
     _filename = None
