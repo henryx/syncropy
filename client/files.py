@@ -240,19 +240,21 @@ class List(object):
         del self._acl
 
     def get(self):
-        result = {}
-
         for item in self._directory:
             for root, dirs, files in os.walk(item):
                 for directory in dirs:
+                    result = {}
                     path = root + directory if root[-1:] == "/" else root + "/" + directory
                     result[path] = self._compute_metadata(path)
+                    yield json.dumps([result])
 
                 for filename in files:
+                    result = {}
                     path = root + filename if root[-1:] == "/" else root + "/" + filename
                     result[path] = self._compute_metadata(path)
+                    yield json.dumps([result])
 
-        return json.dumps([result])
+        #return json.dumps([result])
 
 class Get(object):
     _filename = None

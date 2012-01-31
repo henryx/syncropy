@@ -68,9 +68,10 @@ def parse(command, conn):
                     res.directory = cmd["command"]["directory"]
                     res.acl = cmd["command"]["acl"]
 
-                    conn.send(bytes(res.get(), "utf-8"))
+                    for item in res.get():
+                        conn.send(item.encode("utf-8"))
                 except ValueError as ex:
-                    conn.send(bytes(str(ex), "utf-8"))
+                    conn.send(json.dumps({"result": "ko", "message": str(ex)}).encode("utf-8"))
             elif cmd["command"]["name"] == "get":
                 res = files.Get()
                 res.filename = cmd["command"]["filename"]
