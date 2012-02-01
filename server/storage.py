@@ -38,7 +38,7 @@ class Database(object):
         self._dataset = value
 
         if not self._mode:
-            raise AttributeError("Grace not definied")
+            raise AttributeError("Dataset not definied")
 
     @dataset.deleter
     def dataset(self):
@@ -54,7 +54,7 @@ class Database(object):
 
     @section.deleter
     def section(self):
-        del self._section   
+        del self._section
 
 class Filesystem(object):
     _cfg = None

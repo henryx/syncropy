@@ -243,16 +243,12 @@ class List(object):
         for item in self._directory:
             for root, dirs, files in os.walk(item):
                 for directory in dirs:
-                    result = {}
-                    # FIXME: it not work in Windows environment
-                    path = root + directory if root[-1:] == "/" else root + "/" + directory
-                    result[path] = self._compute_metadata(path)
-                    yield json.dumps([result])
+                    path = os.path.join(root, directory)
+                    yield json.dumps([path, self._compute_metadata(path)])
 
                 for filename in files:
                     result = {}
-                    # FIXME: it not work in Windows environment
-                    path = root + filename if root[-1:] == "/" else root + "/" + filename
+                    path = os.path.join(root, filename)
                     result[path] = self._compute_metadata(path)
                     yield json.dumps([result])
 

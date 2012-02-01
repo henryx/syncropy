@@ -46,10 +46,22 @@ class Common(object):
 class Sync(Common):
     def __init__(self, cfg):
         super(Sync, self).__init__(cfg)
+        # NOTE: property dataset is not used in this class
 
     def execute(self):
         dbstore = storage.Database(self._cfg)
         fsstore = storage.Filesystem(self._cfg)
+
+        fsstore.mode = self._mode
+        dbstore.mode = self._mode
+
+        sections = self._cfg.sections()
+
+        for section in ["general", "dataset"]:
+            sections.remove(section)
+
+        logger = logging.getLogger("Syncropy")
+        logger.info("Beginning backup")
 
 class Remove(Common):
     def __init__(self, cfg):
