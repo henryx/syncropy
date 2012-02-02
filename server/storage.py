@@ -34,7 +34,9 @@ class Database(object):
     _cfg = None
     _conn = None
     _db = None
-    self._grace = None
+    _grace = None
+    _dataset = None
+    _section = None
 
     def __init__(self, cfg):
         self._cfg = cfg
@@ -120,11 +122,11 @@ class Filesystem(object):
     def section(self, value):
         self._section = value
 
-        if not os.path.exists("/".join([self._cfg.get("general", "repository"),
+        if not os.path.exists(os.sep.join([self._cfg.get("general", "repository"),
                                  self._grace,
                                  str(self._dataset),
                                  self._section])):
-            os.makedirs("/".join([self._cfg.get("general", "repository"),
+            os.makedirs(os.sep.join([self._cfg.get("general", "repository"),
                                  self._grace,
                                  str(self._dataset),
                                  self._section]))
@@ -147,3 +149,6 @@ class Filesystem(object):
     @dataset.deleter
     def dataset(self):
         del self._dataset
+        
+    def add(self):
+        pass
