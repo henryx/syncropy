@@ -13,23 +13,23 @@ import storage
 
 class Common(object):
     _cfg = None
-    _mode = None
+    _grace = None
     _dataset = None
 
     def __init__(self, cfg):
         self._cfg = cfg
 
     @property
-    def mode(self):
-        return self._mode
+    def grace(self):
+        return self._grace
 
-    @mode.setter
-    def mode(self, value):
-        self._mode = value
+    @grace.setter
+    def grace(self, value):
+        self._grace = value
 
-    @mode.deleter
-    def mode(self):
-        del self._mode
+    @grace.deleter
+    def grace(self):
+        del self._grace
 
     @property
     def dataset(self):
@@ -52,12 +52,12 @@ class Sync(Common):
         dbstore = storage.Database(self._cfg)
         fsstore = storage.Filesystem(self._cfg)
 
-        fsstore.mode = self._mode
-        dbstore.mode = self._mode
+        fsstore.grace = self._grace
+        dbstore.grace = self._grace
 
         sections = self._cfg.sections()
 
-        for section in ["general", "dataset"]:
+        for section in ["general", "dataset", "database"]:
             sections.remove(section)
 
         logger = logging.getLogger("Syncropy")

@@ -22,13 +22,13 @@ def init_args():
     args = argparse.ArgumentParser(description="Syncropy")
     args.add_argument("-c", "--cfg", metavar="<file>", required=True,
                       help="Use the specified configuration file")
-    args.add_argument("-H", dest="mode", action='store_const',
+    args.add_argument("-H", dest="grace", action='store_const',
                       const="hour", help="Hourly backup is executed")
-    args.add_argument("-D", dest="mode", action='store_const',
+    args.add_argument("-D", dest="grace", action='store_const',
                       const="day", help="Daily backup is executed")
-    args.add_argument("-W", dest="mode", action='store_const',
+    args.add_argument("-W", dest="grace", action='store_const',
                       const="week", help="Weekly backup is executed")
-    args.add_argument("-M", dest="mode", action='store_const',
+    args.add_argument("-M", dest="grace", action='store_const',
                       const="month", help="Monthly backup is executed")
     args.add_argument("-r", "--reload-dataset", action='store_const',
                       const=True, help="Reload a dataset")
@@ -77,7 +77,7 @@ def go(sysargs):
         cfg = configparser.ConfigParser()
         cfg.read_file(open(args.cfg, "r"))
 
-    if not args.mode:
+    if not args.grace:
         print("Backup mode not definied")
         sys.exit(2)
 
@@ -94,7 +94,7 @@ def go(sysargs):
     else:
         s = manage.Remove(cfg)
 
-    s.mode = args.mode
+    s.grace = args.grace
     s.execute()
 
 if __name__ == "__main__":
