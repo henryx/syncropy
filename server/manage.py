@@ -12,6 +12,7 @@ __author__ = "enrico"
 import logging
 
 import storage
+import sync
 
 class Common(object):
     _cfg = None
@@ -54,8 +55,8 @@ class Sync(Common):
         dbstore = storage.Database(self._cfg)
         fsstore = storage.Filesystem(self._cfg)
 
-        fsstore.grace = self._grace
         dbstore.grace = self._grace
+        fsstore.grace = self._grace
 
         sections = self._cfg.sections()
 
@@ -71,6 +72,16 @@ class Sync(Common):
 
         logger = logging.getLogger("Syncropy")
         logger.info("Beginning backup")
+
+        for section in sections:
+            dbstore.section = section
+            fsstore.section = section
+
+            if self._cfg.get(section, "type") == "file":
+                filesync = sync.FileSync(self._cfg)
+                filesync.section = section
+                filesync.filestore = fsstore
+                filesync.dbstore = dbstore
 
 class Remove(Common):
     def __init__(self, cfg):

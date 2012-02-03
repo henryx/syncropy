@@ -23,7 +23,6 @@ Section:
 
 """
 
-
 __author__ = "enrico"
 
 import logging
