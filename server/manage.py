@@ -9,6 +9,8 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import logging
+
 import storage
 
 class Common(object):
@@ -59,6 +61,13 @@ class Sync(Common):
 
         for section in ["general", "dataset", "database"]:
             sections.remove(section)
+
+        dataset = dbstore.get_last_dataset()
+
+        if (dataset + 1) > self._cfg.getint("dataset", self._grace):
+            dataset = 1
+        else:
+            dataset = dataset + 1
 
         logger = logging.getLogger("Syncropy")
         logger.info("Beginning backup")

@@ -43,7 +43,7 @@ class Database(object):
         self._cfg = cfg
 
         self._conn = pymongo.Connection(self._cfg.get("database", "host"), self._cfg.getint("database", "port"))
-        self._db = self.conn[self._cfg.get("database", "name")]
+        self._db = self._conn[self._cfg.get("database", "name")]
 
         if not "system" in self._db.collection_names():
             system = self._db["system"]
@@ -58,8 +58,8 @@ class Database(object):
 
     @grace.setter
     def grace(self, value):
+        self._grace = self._db[value]
         if not value in self._db.collection_names():
-            self._grace = self._db[self._grace]
             self._grace.save({"status": 0})
 
     @grace.deleter
@@ -95,6 +95,14 @@ class Database(object):
     @section.deleter
     def section(self):
         del self._section
+
+    def get_last_dataset(self):
+        doc = self._db.system.find_one({self._grace.name: {"$exists": True}})
+
+        if not doc:
+            raise AttributeError("Grace not definied")
+        else:
+            return doc[self.grace.name]
 
     def add(self):
         pass
