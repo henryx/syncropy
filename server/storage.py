@@ -28,6 +28,7 @@ __author__ = "enrico"
 
 import logging
 import os
+import time
 import pymongo
 
 class Database(object):
@@ -43,6 +44,13 @@ class Database(object):
 
         self._conn = pymongo.Connection(self._cfg.get("database", "host"), self._cfg.getint("database", "port"))
         self._db = self.conn[self._cfg.get("database", "name")]
+
+        if not "system" in self._db.collection_names():
+            system = self._db["system"]
+            system.save({"hour": 0, "lastupdate": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())})
+            system.save({"day": 0, "lastupdate": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())})
+            system.save({"week": 0, "lastupdate": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())})
+            system.save({"month": 0, "lastupdate": time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())})
 
     @property
     def grace(self):
@@ -122,11 +130,11 @@ class Filesystem(object):
     def section(self, value):
         self._section = value
 
-        if not os.path.exists("/".join([self._cfg.get("general", "repository"),
+        if not os.path.exists(os.sep.join([self._cfg.get("general", "repository"),
                                  self._grace,
                                  str(self._dataset),
                                  self._section])):
-            os.makedirs("/".join([self._cfg.get("general", "repository"),
+            os.makedirs(os.sep.join([self._cfg.get("general", "repository"),
                                  self._grace,
                                  str(self._dataset),
                                  self._section]))
@@ -149,3 +157,6 @@ class Filesystem(object):
     @dataset.deleter
     def dataset(self):
         del self._dataset
+
+    def add(self):
+        pass
