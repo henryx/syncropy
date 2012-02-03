@@ -34,7 +34,9 @@ class Database(object):
     _cfg = None
     _conn = None
     _db = None
-    self._grace = None
+    _grace = None
+    _dataset = None
+    _section = None
 
     def __init__(self, cfg):
         self._cfg = cfg
