@@ -71,7 +71,7 @@ class Sync(Common):
             dataset = dataset + 1
 
         logger = logging.getLogger("Syncropy")
-        logger.info("Beginning backup")
+        logger.info("Started backup")
 
         for section in sections:
             dbstore.section = section
@@ -82,6 +82,8 @@ class Sync(Common):
                 filesync.section = section
                 filesync.filestore = fsstore
                 filesync.dbstore = dbstore
+
+                filesync.start()
 
 class Remove(Common):
     def __init__(self, cfg):

@@ -25,6 +25,8 @@ Section:
 
 __author__ = "enrico"
 
+import socket
+
 class Common(object):
     _cfg = None
     _section = None
@@ -73,4 +75,7 @@ class Common(object):
 class FileSync(Common)
     def __init__(self, cfg):
         super(FileSync, self).__init__(cfg)
-        
+
+    def start(self):
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
