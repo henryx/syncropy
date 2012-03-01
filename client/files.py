@@ -13,7 +13,7 @@ import json
 import os
 import stat
 
-class Stat(object):
+class FileMode(object):
     SUID = 0
     SGID = 0
     STICKY = 0
@@ -172,7 +172,7 @@ class List(object):
 
     def _compute_attrs(self, path):
         result = {}
-        attrs = Stat(os.stat(path).st_mode)
+        attrs = FileMode(os.stat(path).st_mode)
 
         if os.path.isdir(path):
             result["type"] = "directory"
