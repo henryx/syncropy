@@ -42,7 +42,7 @@ class Common(object):
 
     @section.setter
     def section(self, value):
-        self._section = section
+        self._section = value
 
     @section.deleter
     def section(self):
