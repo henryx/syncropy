@@ -70,6 +70,9 @@ class Sync(Common):
         else:
             dataset = dataset + 1
 
+        dbstore.dataset = dataset
+        fsstore.dataset = dataset
+
         logger = logging.getLogger("Syncropy")
         logger.info("Started backup")
 
