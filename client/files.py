@@ -176,6 +176,8 @@ class List(object):
 
         if os.path.isdir(path):
             result["type"] = "directory"
+        elif os.path.islink(path):
+            result["type"] = "symlink"
         else:
             result["type"] = "file"
             result["size"] = os.path.getsize(path)
