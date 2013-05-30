@@ -62,7 +62,7 @@ class Sync(Common):
         sections = self._cfg.sections()
         sections.remove("general")
 
-        logger.info("Beginning backup")
+        logger.info("Started backup")
         dataset = dbstore.get_last_dataset()
         if not self._reload:
             if dataset >= self._cfg.getint("general", self.mode + "_grace"):
@@ -108,7 +108,7 @@ class Sync(Common):
                 del dbstore.section
 
         dbstore.set_last_dataset(dataset)
-        logger.info("Ending backup")
+        logger.info("Ended backup")
 
 class Remove(Common):
     _dataset = None
