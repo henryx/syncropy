@@ -33,7 +33,8 @@ class DbStorage(object):
 
         dbm = src.db.DBManager(self._cfg)
         self._logger = logging.getLogger("Syncropy")
-        self._syscon = dbm.open(self._cfg.get("general", "repository") + "/.syncropy.db", system=True)
+        self._syscon = dbm.open(self._cfg.get("general", "repository") +
+                                os.sep +".store.db", system=True)
 
     def __del__(self):
         try:
@@ -213,7 +214,7 @@ class DbStorage(object):
             raise AttributeError, "Dataset not definied"
         else:
             dbm = src.db.DBManager(self._cfg)
-            self._con = dbm.open("/".join([self._cfg.get("general", "repository"),
+            self._con = dbm.open(os.sep.join([self._cfg.get("general", "repository"),
                                  self._mode,
                                  str(self._dataset),
                                  self._section,
@@ -225,7 +226,7 @@ class DbStorage(object):
                 old_dataset = self._cfg.getint("general", self.mode + "_grace")
 
             try:
-                self._oldcon = dbm.open("/".join([self._cfg.get("general", "repository"),
+                self._oldcon = dbm.open(os.sep.join([self._cfg.get("general", "repository"),
                                  self._mode,
                                  str(old_dataset),
                                  self._section,
@@ -276,7 +277,7 @@ class FsStorage(object):
         return path
 
     def check_dataset_exist(self):
-        path = "/".join([self._repository, self._mode, str(self._dataset)])
+        path = os.sep.join([self._repository, self._mode, str(self._dataset)])
 
         if os.path.exists(path):
             return True
@@ -284,7 +285,7 @@ class FsStorage(object):
             return False
 
     def remove_dataset(self):
-        path = "/".join([self._repository, self._mode, str(self._dataset)])
+        path = os.sep.join([self._repository, self._mode, str(self._dataset)])
 
         if os.path.exists(path):
             shutil.rmtree(path)
@@ -321,11 +322,11 @@ class FsStorage(object):
     def section(self, value):
         self._section = value
 
-        if not os.path.exists("/".join([self._cfg.get("general", "repository"),
+        if not os.path.exists(os.sep.join([self._cfg.get("general", "repository"),
                                  self._mode,
                                  str(self._dataset),
                                  self._section])):
-            os.makedirs("/".join([self._cfg.get("general", "repository"),
+            os.makedirs(os.sep.join([self._cfg.get("general", "repository"),
                                  self._mode,
                                  str(self._dataset),
                                  self._section]))

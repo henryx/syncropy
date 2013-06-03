@@ -81,7 +81,7 @@ def go(sysargs):
     if args.get_last_dataset:
         s = src.management.Info(cfg)
         s.mode = args.mode
-        
+
         print s.dataset
         sys.exit(0)
 
