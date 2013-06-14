@@ -110,19 +110,16 @@ def serve(port):
 
     s.close()
 
-def go(sysargs):
-    args = init_args().parse_args(sysargs)
+if __name__ == "__main__":
+    #import pycallgraph
+
+    #pycallgraph.start_trace()
+    args = init_args().parse_args(sys.argv[1:])
 
     if not args.port:
         print("Port not definied")
         sys.exit(1)
     else:
         serve(args.port)
-
-if __name__ == "__main__":
-    #import pycallgraph
-
-    #pycallgraph.start_trace()
-    go(sys.argv[1:])
     #pycallgraph.make_dot_graph('graph.png')
 
