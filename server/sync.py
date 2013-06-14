@@ -72,7 +72,7 @@ class Common(object):
     def dbstore(self):
         del self._dbstore
 
-class FileSync(Common)
+class FileSync(Common):
     def __init__(self, cfg):
         super(FileSync, self).__init__(cfg)
 
