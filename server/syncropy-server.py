@@ -10,7 +10,7 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
-import configparser
+import ConfigParser
 import argparse
 import logging.handlers
 import os
@@ -74,7 +74,7 @@ def go(sysargs):
         print("configuration file not specified")
         sys.exit(1)
     else:
-        cfg = configparser.ConfigParser()
+        cfg = ConfigParser.ConfigParser()
         cfg.read_file(open(args.cfg, "r"))
 
     if not args.grace:
