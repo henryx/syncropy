@@ -20,6 +20,7 @@ import sys
 def init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
     args.add_argument("-p", "--port", metavar="<port>", help="Port wich listen")
+    args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
 
     return args
 
@@ -91,10 +92,14 @@ def parse(command, conn):
 
     return result
 
-def serve(port):
+def serve(port, address=None):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    s.bind(('', int(port)))
+
+    if address:
+        s.bind((address, int(port)))
+    else:
+        s.bind(('', int(port)))
 
     s.listen(1)
 
@@ -120,6 +125,6 @@ if __name__ == "__main__":
         print("Port not definied")
         sys.exit(1)
     else:
-        serve(args.port)
+        serve(args.port, args.listen)
     #pycallgraph.make_dot_graph('graph.png')
 
