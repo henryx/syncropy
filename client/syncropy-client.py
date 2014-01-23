@@ -113,7 +113,8 @@ def serve(port, address=None):
             execute = parse(data, conn)
         except UnicodeDecodeError:
             pass
-        conn.close()
+        finally:
+            conn.close()
 
     s.close()
 
