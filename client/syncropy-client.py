@@ -26,6 +26,8 @@ def init_args():
 
 def exec_command(cmd, conn):
     message = {}
+    string = ""
+
     try:
         p = subprocess.Popen(cmd,
                              shell=True,
@@ -37,27 +39,27 @@ def exec_command(cmd, conn):
             if p.stdout != None:
                 message["result"] = "ko"
                 for item in p.stdout.readlines():
-                    string  = "\n".join([string, item])
+                    string  = "\n".join([string, item.decode("utf-8")])
 
                 message["stdout"] = string
             if p.stderr != None:
                 for item in p.stderr.readlines():
-                    string  = "\n".join([string, item])
+                    string  = "\n".join([string, item.decode("utf-8")])
 
                 message["stderr"] = string
         else:
             message["result"] = "ok"
             message["message"] = "Command successful"
 
-        conn.send(json.dumps(message))
+        conn.send(json.dumps(message).encode("utf-8"))
     except subprocess.CalledProcessError as e:
-        conn.send(json.dumps({"result": "ko", "error": str(e)}))
+        conn.send(json.dumps({"result": "ko", "error": str(e)}).encode("utf-8"))
 
 def parse(command, conn):
     try:
-        cmd = json.loads(command)
+        cmd = json.loads(command.decode('utf-8'))
     except ValueError:
-        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}))
+        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}).encode("utf-8"))
         return True
 
     try:
@@ -70,25 +72,25 @@ def parse(command, conn):
                     res.acl = cmd["command"]["acl"]
 
                     for item in res.get():
-                        conn.send(item)
+                        conn.send(item.encode("utf-8"))
                 except ValueError as ex:
-                    conn.send(json.dumps({"result": "ko", "message": str(ex)}))
+                    conn.send(json.dumps({"result": "ko", "message": str(ex)}).encode("utf-8"))
             elif cmd["command"]["name"] == "get":
                 res = files.Get()
                 res.filename = cmd["command"]["filename"]
 
                 conn.send(res.data())
             else:
-                conn.send(json.dumps({"result": "ko", "message": "Command not found"}))
+                conn.send(json.dumps({"result": "ko", "message": "Command not found"}).encode("utf-8"))
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
                 exec_command(cmd["command"]["value"], conn)
             elif cmd["command"]["name"] == "exit":
                 result = False
         else:
-            conn.send(json.dumps({"result": "ko", "message": "Context not found"}))
+            conn.send(json.dumps({"result": "ko", "message": "Context not found"}).encode("utf-8"))
     except KeyError:
-        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}))
+        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}).encode("utf-8"))
 
     return result
 

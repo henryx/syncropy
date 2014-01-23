@@ -128,8 +128,8 @@ class List(object):
         group = []
 
         try:
-            p = subprocess.Popen(subprocess.list2cmdline(["getfacl", path]),
-                                 shell=True,
+            p = subprocess.Popen(["getfacl", path],
+                                 shell=False,
                                  stdout=subprocess.PIPE,
                                  stderr=subprocess.PIPE)
             sts = p.wait()
@@ -158,11 +158,11 @@ class List(object):
             else:
                 if p.stdout != None:
                     for item in p.stdout.readlines():
-                        print("STDOUT: " + str(item))
+                        print("STDOUT: " + path + ": " + item.decode("utf-8"))
 
                 if p.stderr != None:
                     for item in p.stderr.readlines():
-                        print("STDERR: " + str(item))
+                        print("STDERR: " + path + ": " + item.decode("utf-8"))
         except subprocess.CalledProcessError as e:
             # FIXME: manage the exception
             print(e)
