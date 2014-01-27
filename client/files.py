@@ -254,7 +254,7 @@ class List(object):
                     result[path] = self._compute_metadata(path)
                     yield json.dumps(result)
 
-class Get(object):
+class Send(object):
     _filename = None
 
     def __init__(self):

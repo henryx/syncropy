@@ -80,7 +80,7 @@ def parse(command, conn):
                 except ValueError as ex:
                     conn.send(json.dumps({"result": "ko", "message": str(ex)}).encode("utf-8"))
             elif cmd["command"]["name"] == "get":
-                res = files.Get()
+                res = files.Send()
                 res.filename = cmd["command"]["filename"]
 
                 conn.send(res.data())
