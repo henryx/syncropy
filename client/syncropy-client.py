@@ -128,7 +128,8 @@ def serve(port, address=None, sslparams=None):
             execute = parse(data, conn)
         except UnicodeDecodeError:
             pass
-        conn.close()
+        finally:
+            conn.close()
 
     s.close()
 

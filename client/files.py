@@ -183,9 +183,9 @@ class List(object):
             result["size"] = os.path.getsize(path)
             result["hash"] = self._hash(path)
 
-        result["atime"] = os.path.getatime(path)
-        result["mtime"] = os.path.getmtime(path)
-        result["ctime"] = os.path.getctime(path)
+        result["atime"] = int(os.path.getatime(path))
+        result["mtime"] = int(os.path.getmtime(path))
+        result["ctime"] = int(os.path.getctime(path))
         result["mode"] = attrs.mode_to_octal()
 
         return result
@@ -252,7 +252,7 @@ class List(object):
                     result = {}
                     path = os.path.join(root, filename)
                     result[path] = self._compute_metadata(path)
-                    yield json.dumps([result])
+                    yield json.dumps(result)
 
 class Get(object):
     _filename = None
