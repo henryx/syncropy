@@ -273,9 +273,12 @@ class Send(object):
         del self._filename
 
     def data(self):
-        f = open(self._filename, "rb")
-        data = f.read()
-        return data
+        with open(self._filename, "rb") as f:
+            while True:
+                data = f.read(2**20)
+                if not data:
+                    break
+                yield data
 
 if __name__ == "__main__":
     pass
