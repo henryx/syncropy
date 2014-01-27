@@ -280,5 +280,27 @@ class Send(object):
                     break
                 yield data
 
+class Receive(object):
+    _filename = None
+
+    def __init__(self):
+        pass
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @filename.setter
+    def filename(self, value):
+        self._filename = value
+
+    @filename.deleter
+    def filename(self):
+        del self._filename
+
+    def data(self, socket):
+        # TODO: write code for receive data
+        pass
+
 if __name__ == "__main__":
     pass
