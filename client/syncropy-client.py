@@ -14,6 +14,7 @@ import argparse
 import files
 import json
 import socket
+import ssl
 import subprocess
 import sys
 
@@ -21,6 +22,9 @@ def init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
     args.add_argument("-p", "--port", metavar="<port>", help="Port wich listen")
     args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
+    args.add_argument("-S", "--ssl", action='store_const', const="ssl", help="Enable SSL support")
+    args.add_argument("--sslkey", metavar="<address>", help="Use private key for SSL")
+    args.add_argument("--sslcert", metavar="<address>", help="Use certificate for SSL")
 
     return args
 
@@ -94,7 +98,7 @@ def parse(command, conn):
 
     return result
 
-def serve(port, address=None):
+def serve(port, address=None, sslparams=None):
     s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -108,7 +112,18 @@ def serve(port, address=None):
     execute = True
     while execute:
         conn, addr = s.accept()
-        data = conn.recv(1024)
+
+        if sslparams["enabled"]:
+            stream = ssl.wrap_socket(conn,
+                                     server_side=True,
+                                     certfile=sslparams["cert"],
+                                     keyfile=sslparams["key"],
+                                     cert_reqs=ssl.CERT_REQUIRED)
+
+            data = stream.recv(1024)
+        else:
+            data = conn.recv(1024)
+
         try:
             execute = parse(data, conn)
         except UnicodeDecodeError:
@@ -121,11 +136,24 @@ if __name__ == "__main__":
     #import pycallgraph
 
     #pycallgraph.start_trace()
+
     args = init_args().parse_args(sys.argv[1:])
 
     if not args.port:
-        print("Port not definied")
+        print("Port not defined")
         sys.exit(1)
+
+    if args.ssl:
+        if args.sslkey is None:
+            print("SSL keyfile is missing")
+            sys.exit(2)
+
+        if args.sslcert is None:
+            print("SSL certificate is missing")
+            sys.exit(2)
+
+        sslparams = {"enabled": True, "key": args.sslkey, "cert": args.sslcert}
+        serve(args.port, args.listen, args.sslparams)
     else:
         serve(args.port, args.listen)
     #pycallgraph.make_dot_graph('graph.png')
