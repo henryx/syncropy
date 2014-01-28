@@ -113,20 +113,23 @@ def serve(port, address=None, sslparams=None):
     while execute:
         conn, addr = s.accept()
 
-        if sslparams["enabled"]:
-            stream = ssl.wrap_socket(conn,
-                                     server_side=True,
-                                     certfile=sslparams["cert"],
-                                     keyfile=sslparams["key"],
-                                     cert_reqs=ssl.CERT_REQUIRED)
-
-            data = stream.recv(1024)
-        else:
-            data = conn.recv(1024)
 
         try:
+            if sslparams["enabled"]:
+                stream = ssl.wrap_socket(conn,
+                                        server_side=True,
+                                        certfile=sslparams["cert"],
+                                        keyfile=sslparams["key"],
+                                        cert_reqs=ssl.CERT_REQUIRED)
+
+                data = stream.recv(1024)
+            else:
+                data = conn.recv(1024)
+
             execute = parse(data, conn)
         except UnicodeDecodeError:
+            pass
+        except ssl.SSLError:
             pass
         finally:
             conn.close()
