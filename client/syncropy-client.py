@@ -154,7 +154,7 @@ if __name__ == "__main__":
             sys.exit(2)
 
         sslparams = {"enabled": True, "key": args.sslkey, "cert": args.sslcert}
-        serve(args.port, args.listen, args.sslparams)
+        serve(args.port, args.listen, sslparams)
     else:
         serve(args.port, args.listen)
     #pycallgraph.make_dot_graph('graph.png')
