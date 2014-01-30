@@ -27,7 +27,6 @@ __author__ = "enrico"
 
 import logging
 import os
-import time
 import fdb
 
 class Common(object):
@@ -196,7 +195,6 @@ class Database(Common):
 
         return dataset
 
-
     def add(self):
         pass
 
@@ -219,13 +217,13 @@ class Filesystem(Common):
         self._section = value
 
         if not os.path.exists(os.sep.join([self._cfg.get("general", "repository"),
-                                 self._grace,
-                                 str(self._dataset),
-                                 self._section])):
+                                           self._grace,
+                                           str(self._dataset),
+                                           self._section])):
             os.makedirs(os.sep.join([self._cfg.get("general", "repository"),
-                                 self._grace,
-                                 str(self._dataset),
-                                 self._section]))
+                                     self._grace,
+                                     str(self._dataset),
+                                     self._section]))
 
     @section.deleter
     def section(self):
