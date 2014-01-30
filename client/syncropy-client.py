@@ -23,8 +23,9 @@ def init_args():
     args.add_argument("-p", "--port", metavar="<port>", help="Port wich listen")
     args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
     args.add_argument("-S", "--ssl", action='store_const', const="ssl", help="Enable SSL support")
-    args.add_argument("--sslkey", metavar="<address>", help="Use private key for SSL")
-    args.add_argument("--sslcert", metavar="<address>", help="Use certificate for SSL")
+    args.add_argument("--sslkey", metavar="<keyfile>", help="Private key for SSL connection")
+    args.add_argument("--sslcert", metavar="<certificate>", help="Certificate file for SSL connection")
+    args.add_argument("--sslpass", metavar="<password>", help="Password for SSL connection")
 
     return args
 
