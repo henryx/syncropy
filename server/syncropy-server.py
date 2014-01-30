@@ -81,9 +81,9 @@ def go(sysargs):
         print("Backup mode not definied")
         sys.exit(2)
 
+    check_structure(cfg.get("general", "repository"))
     set_log(filename=cfg.get("general", "log_file"),
             level=cfg.get("general", "log_level"))
-    check_structure(cfg.get("general", "repository"))
 
     if args.get_last_dataset:
         # TODO: write code for getting last dataset processed
