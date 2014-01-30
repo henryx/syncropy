@@ -114,14 +114,13 @@ def serve(port, address=None, sslparams=None):
     while execute:
         conn, addr = s.accept()
 
-
         try:
             if sslparams["enabled"]:
-                stream = ssl.wrap_socket(conn,
-                                        server_side=True,
-                                        certfile=sslparams["cert"],
+                context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+                context.load_cert_chain(certfile=sslparams["cert"],
                                         keyfile=sslparams["key"],
-                                        cert_reqs=ssl.CERT_REQUIRED)
+                                        password=sslparams["password"])
+                stream = context.wrap_socket(conn, server_side=True)
 
                 data = stream.recv(1024)
             else:
@@ -130,8 +129,8 @@ def serve(port, address=None, sslparams=None):
             execute = parse(data, conn)
         except UnicodeDecodeError:
             pass
-        except ssl.SSLError:
-            pass
+        except ssl.SSLError as err:
+            print("SSL error: {0}".format(err))
         finally:
             conn.close()
 
@@ -157,7 +156,7 @@ if __name__ == "__main__":
             print("SSL certificate is missing")
             sys.exit(2)
 
-        sslparams = {"enabled": True, "key": args.sslkey, "cert": args.sslcert}
+        sslparams = {"enabled": True, "key": args.sslkey, "cert": args.sslcert, "password": args.sslpass}
         serve(args.port, args.listen, sslparams)
     else:
         serve(args.port, args.listen)
