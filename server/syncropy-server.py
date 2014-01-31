@@ -43,10 +43,9 @@ def check_structure(repository):
     if not os.path.exists(repository):
         try:
             os.mkdir(repository)
-            os.mkdir(repository + os.sep + "hour")
-            os.mkdir(repository + os.sep + "day")
-            os.mkdir(repository + os.sep + "week")
-            os.mkdir(repository + os.sep + "month")
+            for item in ["hour", "day", "week", "month"]:
+                os.mkdir(os.sep.join([repository, item]))
+
         except IOError as err:
             print("I/O error({0})".format(err))
             sys.exit(3)
