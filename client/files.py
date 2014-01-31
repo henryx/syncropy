@@ -245,8 +245,10 @@ class List(object):
         for item in self._directory:
             for root, dirs, files in os.walk(item):
                 for directory in dirs:
+                    result = {}
                     path = os.path.join(root, directory)
-                    yield json.dumps([path, self._compute_metadata(path)])
+                    result[path] = self._compute_metadata(path)
+                    yield json.dumps(result)
 
                 for filename in files:
                     result = {}
