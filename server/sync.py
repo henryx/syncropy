@@ -25,6 +25,7 @@ Section:
 
 __author__ = "enrico"
 
+import json
 import socket
 import ssl
 
@@ -78,22 +79,37 @@ class FileSync(Common):
         super(FileSync, self).__init__(cfg)
 
     def start(self):
+        cmd = {
+            "context": "file",
+            "command": {
+                "name": "list",
+                "directory": self._cfg.get(self._section, "path").split(","),
+                "acl": self._cfg.getboolean(self._section, "acl")
+            }
+        }
+
         if self._cfg.getboolean(self._section, "ssl"):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-            context.load_cert_chain(certfile=self._cfg.get(self._section, "sslcert"),
-                                        keyfile=self._cfg.get(self._section, "sslkey"),
-                                        password=self._cfg.get(self._section, "sslpass"))
+            context.load_cert_chain(
+                certfile=self._cfg.get(self._section, "sslcert"),
+                keyfile=self._cfg.get(self._section, "sslkey"),
+                password=self._cfg.get(self._section, "sslpass")
+            )
 
             conn = context.wrap_socket(sock)
         else:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
+        conn.send(json.dumps(cmd).encode("utf-8"))
 
-        conn.write('{"command":{"acl":true,"directory":["/home/enrico/linux","/home/enrico/Public"],"filename":null,"name":"list"},"context":"file"}')
-        data = conn.read()
+        while True:
+            data = conn.read()
 
-        print(data) # For testing only
+            if not data:
+                break
+            print(data) # NOTE: For testing only
+        print("Done") # NOTE: For testing only
 
