@@ -122,16 +122,23 @@ def serve(port, address=None, sslparams=None):
                                         password=sslparams["password"])
                 stream = context.wrap_socket(conn, server_side=True)
 
-                data = stream.recv(1024)
+                data = stream.read()
+                execute = parse(data, stream)
             else:
-                data = conn.recv(1024)
+                data = conn.read()
+                execute = parse(data, conn)
 
-            execute = parse(data, conn)
         except UnicodeDecodeError:
             pass
         except ssl.SSLError as err:
             print("SSL error: {0}".format(err))
+        except OSError as err:
+            print("Operating system error({0})".format(err))
         finally:
+            try:
+                stream.shutdown(socket.SHUT_RDWR)
+            except:
+                pass
             conn.close()
 
     s.close()
