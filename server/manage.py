@@ -12,6 +12,7 @@ import logging
 
 import storage
 import sync
+from multiprocessing import Pool
 
 class Common(object):
     _cfg = None
@@ -75,6 +76,7 @@ class Sync(Common):
         logger = logging.getLogger("Syncropy")
         logger.info("Started backup")
 
+        pool = Pool(5) # NOTE: maximum concurrent processes is hardcoded for convenience
         for section in sections:
             dbstore.section = section
             fsstore.section = section
@@ -85,7 +87,9 @@ class Sync(Common):
                 filesync.filestore = fsstore
                 filesync.dbstore = dbstore
 
-                filesync.start()
+                pool.apply_async(filesync.start)
+        pool.close()
+        pool.join()
 
 class Remove(Common):
     def __init__(self, cfg):
