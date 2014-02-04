@@ -98,9 +98,9 @@ class Database(Common):
 
     def __del__(self):
         try:
-            if self._con:
-                self._con.commit()
-                self._con.close()
+            if self._conn:
+                self._conn.commit()
+                self._conn.close()
         except:
             pass
 
