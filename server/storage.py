@@ -210,11 +210,11 @@ class Filesystem(Common):
     def section(self, value):
         self._section = pickle.loads(value)
 
-        if not os.path.exists(os.sep.join([self._cfg.get("general", "repository"),
+        if not os.path.exists(os.sep.join([self._repository,
                                            self._grace,
                                            str(self._dataset),
                                            self._section])):
-            os.makedirs(os.sep.join([self._cfg.get("general", "repository"),
+            os.makedirs(os.sep.join([self._repository,
                                      self._grace,
                                      str(self._dataset),
                                      self._section]))
