@@ -13,7 +13,7 @@ import pickle
 import storage
 import sync
 
-from multiprocessing import Pool
+from concurrent.futures import ProcessPoolExecutor
 
 class Common(object):
     _cfg = None
@@ -68,22 +68,20 @@ class Sync(Common):
         logger = logging.getLogger("Syncropy")
         logger.info("Started backup")
 
-        pool = Pool(5) # NOTE: maximum concurrent processes is hardcoded for convenience
-        for section in sections:
-            fsstore = storage.Filesystem(pickle.dumps(self._cfg))
+        with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
+            for section in sections:
+                fsstore = storage.Filesystem(pickle.dumps(self._cfg))
 
-            fsstore.grace = pickle.dumps(self._grace)
-            fsstore.dataset = pickle.dumps(dataset)
-            fsstore.section = pickle.dumps(section)
+                fsstore.grace = pickle.dumps(self._grace)
+                fsstore.dataset = pickle.dumps(dataset)
+                fsstore.section = pickle.dumps(section)
 
-            if self._cfg.get(section, "type") == "file":
-                filesync = sync.FileSync(pickle.dumps(self._cfg))
-                filesync.section = pickle.dumps(section)
-                filesync.filestore = pickle.dumps(fsstore)
+                if self._cfg.get(section, "type") == "file":
+                    filesync = sync.FileSync(pickle.dumps(self._cfg))
+                    filesync.section = pickle.dumps(section)
+                    filesync.filestore = pickle.dumps(fsstore)
 
-                pool.apply_async(filesync.start)
-        pool.close()
-        pool.join()
+                    pool.submit(filesync.start)
 
 class Remove(Common):
     def __init__(self, cfg):
