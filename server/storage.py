@@ -80,23 +80,28 @@ class Common(object):
     def section(self):
         del self._section
 
-class Database(Common):
+class Database():
     _conn = None
 
-    def __init__(self, cfg):
-        super(Database, self).__init__(cfg)
+    @property
+    def connection(self):
+        return self._conn
 
-        self._conn = fdb.connect(host=self._cfg.get("database", "host"),
-                                 port=self._cfg.get("database", "port"),
-                                 database=self._cfg.get("database", "dbname"),
-                                 user=self._cfg.get("database", "user"),
-                                 password=self._cfg.get("database", "password"),
+    def __init__(self, cfg):
+        self._conn = fdb.connect(host=cfg.get("database", "host"),
+                                 port=cfg.get("database", "port"),
+                                 database=cfg.get("database", "dbname"),
+                                 user=cfg.get("database", "user"),
+                                 password=cfg.get("database", "password"),
                                  charset="UTF8")
 
         if not self._check_schema():
             self._create_schema()
 
-    def __del__(self):
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             if self._conn:
                 self._conn.commit()
@@ -186,18 +191,6 @@ class Database(Common):
 
         cursor.close()
 
-    def get_last_dataset(self):
-        cur = self._conn.cursor()
-
-        cur.execute("SELECT actual FROM status WHERE grace = ?", [self._grace])
-        dataset = cur.fetchone()[0]
-        cur.close()
-
-        return dataset
-
-    def add(self):
-        pass
-
 class Filesystem(Common):
     _logger = None
     _repository = None
@@ -231,3 +224,14 @@ class Filesystem(Common):
 
     def add(self):
         pass
+
+def db_get_last_dataset(cfg, grace):
+
+    with Database(cfg) as dbs:
+        cur = dbs.connection.cursor()
+
+        cur.execute("SELECT actual FROM status WHERE grace = ?", [grace])
+        dataset = cur.fetchone()[0]
+        cur.close()
+
+    return dataset

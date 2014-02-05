@@ -62,18 +62,6 @@ class Common(object):
     def filestore(self):
         del self._filestore
 
-    @property
-    def dbstore(self):
-        return self._dbstore
-
-    @dbstore.setter
-    def dbstore(self, value):
-        self._dbstore = value
-
-    @dbstore.deleter
-    def dbstore(self):
-        del self._dbstore
-
 class FileSync(Common):
     def __init__(self, cfg):
         super(FileSync, self).__init__(cfg)

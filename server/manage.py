@@ -52,40 +52,33 @@ class Sync(Common):
         # NOTE: property dataset is not used in this class
 
     def execute(self):
-        dbstore = storage.Database(self._cfg)
-        fsstore = storage.Filesystem(self._cfg)
-
-        dbstore.grace = self._grace
-        fsstore.grace = self._grace
-
         sections = self._cfg.sections()
 
         for section in ["general", "dataset", "database"]:
             sections.remove(section)
 
-        dataset = dbstore.get_last_dataset()
+        dataset = storage.db_get_last_dataset(self._cfg, self._grace)
 
         if (dataset + 1) > self._cfg.getint("dataset", self._grace):
             dataset = 1
         else:
             dataset = dataset + 1
 
-        dbstore.dataset = dataset
-        fsstore.dataset = dataset
-
         logger = logging.getLogger("Syncropy")
         logger.info("Started backup")
 
         pool = Pool(5) # NOTE: maximum concurrent processes is hardcoded for convenience
         for section in sections:
-            dbstore.section = section
+            fsstore = storage.Filesystem(self._cfg)
+
+            fsstore.grace = self._grace
+            fsstore.dataset = dataset
             fsstore.section = section
 
             if self._cfg.get(section, "type") == "file":
                 filesync = sync.FileSync(self._cfg)
                 filesync.section = section
                 filesync.filestore = fsstore
-                filesync.dbstore = dbstore
 
                 pool.apply_async(filesync.start)
         pool.close()
