@@ -57,7 +57,7 @@ class Common(object):
     @dataset.setter
     def dataset(self, value):
         if not self._grace:
-            raise AttributeError("Grace not definied")
+            raise AttributeError("Grace not defined")
 
         self._dataset = value
 
@@ -72,7 +72,7 @@ class Common(object):
     @section.setter
     def section(self, value):
         if not self._dataset:
-            raise AttributeError("Dataset not definied")
+            raise AttributeError("Dataset not defined")
 
         self._section = value
 
