@@ -25,9 +25,9 @@ Section:
 
 __author__ = "enrico"
 
-import logging
-import os
 import fdb
+import os
+import pickle
 
 class Common(object):
     _cfg = None
@@ -36,7 +36,7 @@ class Common(object):
     _section = None
 
     def __init__(self, cfg):
-        self._cfg = cfg
+        self._cfg = pickle.loads(cfg)
 
     @property
     def grace(self):
@@ -44,7 +44,7 @@ class Common(object):
 
     @grace.setter
     def grace(self, value):
-        self._grace = value
+        self._grace = pickle.loads(value)
 
     @grace.deleter
     def grace(self):
@@ -59,7 +59,7 @@ class Common(object):
         if not self._grace:
             raise AttributeError("Grace not defined")
 
-        self._dataset = value
+        self._dataset = pickle.loads(value)
 
     @dataset.deleter
     def dataset(self):
@@ -74,7 +74,7 @@ class Common(object):
         if not self._dataset:
             raise AttributeError("Dataset not defined")
 
-        self._section = value
+        self._section = pickle.loads(value)
 
     @section.deleter
     def section(self):
@@ -199,7 +199,8 @@ class Filesystem(Common):
         super(Filesystem, self).__init__(cfg)
 
         self._repository = self._cfg.get("general", "repository")
-        self._logger = logging.getLogger("Syncropy")
+        # FIXME: Pickle doesn't serialize the logger
+        #self._logger = logging.getLogger("Syncropy")
 
     @property
     def section(self):
@@ -207,7 +208,7 @@ class Filesystem(Common):
 
     @section.setter
     def section(self, value):
-        self._section = value
+        self._section = pickle.loads(value)
 
         if not os.path.exists(os.sep.join([self._cfg.get("general", "repository"),
                                            self._grace,

@@ -26,6 +26,7 @@ Section:
 __author__ = "enrico"
 
 import json
+import pickle
 import socket
 import ssl
 
@@ -36,7 +37,7 @@ class Common(object):
     _filestore = None
 
     def __init__(self, cfg):
-        self._cfg = cfg
+        self._cfg = pickle.loads(cfg)
 
     @property
     def section(self):
@@ -44,7 +45,7 @@ class Common(object):
 
     @section.setter
     def section(self, value):
-        self._section = value
+        self._section = pickle.loads(value)
 
     @section.deleter
     def section(self):
@@ -56,7 +57,7 @@ class Common(object):
 
     @filestore.setter
     def filestore(self, value):
-        self._filestore = value
+        self._filestore = pickle.loads(value)
 
     @filestore.deleter
     def filestore(self):

@@ -9,9 +9,10 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import logging
-
+import pickle
 import storage
 import sync
+
 from multiprocessing import Pool
 
 class Common(object):
@@ -69,16 +70,16 @@ class Sync(Common):
 
         pool = Pool(5) # NOTE: maximum concurrent processes is hardcoded for convenience
         for section in sections:
-            fsstore = storage.Filesystem(self._cfg)
+            fsstore = storage.Filesystem(pickle.dumps(self._cfg))
 
-            fsstore.grace = self._grace
-            fsstore.dataset = dataset
-            fsstore.section = section
+            fsstore.grace = pickle.dumps(self._grace)
+            fsstore.dataset = pickle.dumps(dataset)
+            fsstore.section = pickle.dumps(section)
 
             if self._cfg.get(section, "type") == "file":
-                filesync = sync.FileSync(self._cfg)
-                filesync.section = section
-                filesync.filestore = fsstore
+                filesync = sync.FileSync(pickle.dumps(self._cfg))
+                filesync.section = pickle.dumps(section)
+                filesync.filestore = pickle.dumps(fsstore)
 
                 pool.apply_async(filesync.start)
         pool.close()
