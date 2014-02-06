@@ -245,15 +245,19 @@ class List(object):
         for item in self._directory:
             for root, dirs, files in os.walk(item):
                 for directory in dirs:
-                    result = {}
                     path = os.path.join(root, directory)
-                    result[path] = self._compute_metadata(path)
+                    result = self._compute_metadata(path)
+                    result["name"] = path
+                    result["os"] = os.name
+
                     yield json.dumps(result)
 
                 for filename in files:
-                    result = {}
                     path = os.path.join(root, filename)
-                    result[path] = self._compute_metadata(path)
+                    result = self._compute_metadata(path)
+                    result["name"] = path
+                    result["os"] = os.name
+
                     yield json.dumps(result)
 
 class Send(object):
