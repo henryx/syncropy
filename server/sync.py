@@ -104,6 +104,6 @@ class FileSync(Common):
                 if not data:
                     break
 
-                storage.db_save_data(dbs, self._section, json.loads(data.decode("utf-8")))
+                storage.db_save_attrs(dbs, self._section, json.loads(data.decode("utf-8")))
             print("Done") # NOTE: For testing only
 

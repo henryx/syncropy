@@ -241,7 +241,7 @@ def _db_save_posix_attrs(cursor, section, data):
     # TODO write code for save posix attributes into database
     pass
 
-def db_save_data(dbm, section, data):
+def db_save_attrs(dbm, section, data):
     cursor = dbm.connection.cursor()
     if data["os"] == "posix":
         _db_save_posix_attrs(cursor, section, data)
