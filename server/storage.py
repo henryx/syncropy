@@ -236,3 +236,18 @@ def db_get_last_dataset(cfg, grace):
         cur.close()
 
     return dataset
+
+def _db_save_posix_attrs(cursor, section, data):
+    # TODO write code for save posix attributes into database
+    pass
+
+def db_save_data(dbm, section, data):
+    cursor = dbm.connection.cursor()
+    if data["os"] == "posix":
+        _db_save_posix_attrs(cursor, section, data)
+
+        if "acl" in data:
+            # TODO: write code for save posix ACLs into database
+            pass
+
+    cursor.close()

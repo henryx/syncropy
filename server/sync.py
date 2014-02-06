@@ -5,6 +5,7 @@ Project       Syncropy-ng
 Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
 """
+import logging
 
 """
 NOTE:
@@ -29,6 +30,8 @@ import json
 import pickle
 import socket
 import ssl
+
+import storage
 
 class Common(object):
     _cfg = None
@@ -94,11 +97,13 @@ class FileSync(Common):
         conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
         conn.send(json.dumps(cmd).encode("utf-8"))
 
-        while True:
-            data = conn.read()
+        with storage.Database(self._cfg) as dbs:
+            while True:
+                data = conn.read()
 
-            if not data:
-                break
-            print(data) # NOTE: For testing only
-        print("Done") # NOTE: For testing only
+                if not data:
+                    break
+
+                storage.db_save_data(dbs, self._section, json.loads(data.decode("utf-8")))
+            print("Done") # NOTE: For testing only
 
