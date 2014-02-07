@@ -8,9 +8,11 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import grp
 import hashlib
 import json
 import os
+import pwd
 import stat
 
 class FileMode(object):
@@ -171,13 +173,26 @@ class List(object):
         return result
 
     def _compute_attrs(self, path):
-        result = {}
+        result = {
+            "type": None,
+            "link": None,
+            "size": None,
+            "hash": None,
+            "atime": None,
+            "mtime": None,
+            "ctime": None,
+            "mode": None,
+            "user": None,
+            "group": None
+        }
+
         attrs = FileMode(os.stat(path).st_mode)
 
         if os.path.isdir(path):
             result["type"] = "directory"
         elif os.path.islink(path):
             result["type"] = "symlink"
+            result["link"] = os.readlink(path)
         else:
             result["type"] = "file"
             result["size"] = os.path.getsize(path)
@@ -187,6 +202,8 @@ class List(object):
         result["mtime"] = int(os.path.getmtime(path))
         result["ctime"] = int(os.path.getctime(path))
         result["mode"] = attrs.mode_to_octal()
+        result["user"] = pwd.getpwuid(os.stat(path).st_uid).pw_name
+        result["group"] = grp.getgrgid(os.stat(path).st_gid).gr_name
 
         return result
 
