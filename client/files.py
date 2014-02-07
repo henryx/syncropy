@@ -116,12 +116,12 @@ class List(object):
     def __init__(self):
         pass
 
-    def _compute_acl_nt(self, path):
+    def _compute_nt_acl(self, path):
         result = {}
         # TODO: write code for managing ACLs in Windows environment
         return result
 
-    def _compute_acl_posix(self, path):
+    def _compute_posix_acl(self, path):
         # FIXME: this is a quick&dirty code, replace with a native library if possible
         import subprocess
         result = {}
@@ -172,7 +172,12 @@ class List(object):
 
         return result
 
-    def _compute_attrs(self, path):
+    def _compute_nt_attrs(self, path):
+        result = {}
+        # TODO: write code for getting data from Windows systems
+        return result
+
+    def _compute_posix_attrs(self, path):
         result = {
             "type": None,
             "link": None,
@@ -210,13 +215,14 @@ class List(object):
     def _compute_metadata(self, path):
         result = {}
 
-        result["attrs"] = self._compute_attrs(path)
-
-        if self._acl:
-            if os.name == "nt":
-                result["acl"] = self._compute_acl_nt(path)
-            else:
-                result["acl"] = self._compute_acl_posix(path)
+        if os.name == "nt":
+            result["attrs"] = self._compute_nt_attrs(path)
+            if self.acl:
+                result["acl"] = self._compute_nt_acl(path)
+        else:
+            result["attrs"] = self._compute_posix_attrs(path)
+            if self.acl:
+                result["acl"] = self._compute_posix_acl(path)
 
         return result
 
