@@ -14,6 +14,7 @@ import json
 import os
 import pwd
 import stat
+import subprocess
 
 class FileMode(object):
     SUID = 0
@@ -123,7 +124,6 @@ class List(object):
 
     def _compute_posix_acl(self, path):
         # FIXME: this is a quick&dirty code, replace with a native library if possible
-        import subprocess
         result = {}
         name = ""
         user = []
@@ -213,7 +213,10 @@ class List(object):
         return result
 
     def _compute_metadata(self, path):
-        result = {}
+        result = {
+            "name": path,
+            "os": os.name
+        }
 
         if os.name == "nt":
             result["attrs"] = self._compute_nt_attrs(path)
@@ -270,16 +273,12 @@ class List(object):
                 for directory in dirs:
                     path = os.path.join(root, directory)
                     result = self._compute_metadata(path)
-                    result["name"] = path
-                    result["os"] = os.name
 
                     yield json.dumps(result)
 
                 for filename in files:
                     path = os.path.join(root, filename)
                     result = self._compute_metadata(path)
-                    result["name"] = path
-                    result["os"] = os.name
 
                     yield json.dumps(result)
 
