@@ -36,8 +36,8 @@ import storage
 class Common(object):
     _cfg = None
     _section = None
-    _dbstore = None
-    _filestore = None
+    _grace = None
+    _dataset = None
 
     def __init__(self, cfg):
         self._cfg = pickle.loads(cfg)
@@ -48,11 +48,47 @@ class Common(object):
 
     @section.setter
     def section(self, value):
+        if not self._dataset:
+            raise AttributeError("Dataset not defined")
+
         self._section = pickle.loads(value)
 
     @section.deleter
     def section(self):
         del self._section
+
+    @property
+    def grace(self):
+        return self._grace
+
+    @grace.setter
+    def grace(self, value):
+        self._grace = pickle.loads(value)
+
+    @grace.deleter
+    def grace(self):
+        del self._grace
+
+    @property
+    def dataset(self):
+        return self._dataset
+
+    @dataset.setter
+    def dataset(self, value):
+        if not self._grace:
+            raise AttributeError("Grace not defined")
+
+        self._dataset = pickle.loads(value)
+
+    @dataset.deleter
+    def dataset(self):
+        del self._dataset
+
+class FileSync(Common):
+    _filestore = None
+
+    def __init__(self, cfg):
+        super(FileSync, self).__init__(cfg)
 
     @property
     def filestore(self):
@@ -65,10 +101,6 @@ class Common(object):
     @filestore.deleter
     def filestore(self):
         del self._filestore
-
-class FileSync(Common):
-    def __init__(self, cfg):
-        super(FileSync, self).__init__(cfg)
 
     def start(self):
         cmd = {

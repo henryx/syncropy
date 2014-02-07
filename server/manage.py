@@ -78,6 +78,9 @@ class Sync(Common):
 
                 if self._cfg.get(section, "type") == "file":
                     filesync = sync.FileSync(pickle.dumps(self._cfg))
+
+                    filesync.grace = pickle.dumps(self._grace)
+                    filesync.dataset = pickle.dumps(dataset)
                     filesync.section = pickle.dumps(section)
                     filesync.filestore = pickle.dumps(fsstore)
 
