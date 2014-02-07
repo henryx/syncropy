@@ -237,14 +237,20 @@ def db_get_last_dataset(cfg, grace):
 
     return dataset
 
-def _db_save_posix_attrs(cursor, section, data):
-    # TODO write code for save posix attributes into database
-    pass
+def _db_save_posix_attrs(cursor, set, data):
+    attrs = data["attrs"]
+    cursor.execute("INSERT INTO attrs"
+                + "(area, grace, dataset, element, os, username, groupname, type,"
+                + " link, mtime, ctime, hash, perms, compressed)"
+                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                   [set["name"], set["grace"], set["dataset"], data["name"], data["os"],
+                    attrs["user"], attrs["group"], attrs["type"], attrs["link"], attrs["mtime"], attrs["ctime"],
+                    attrs["hash"], attrs["mode"], set["compressed"]])
 
-def db_save_attrs(dbm, section, data):
+def db_save_attrs(dbm, set, data):
     cursor = dbm.connection.cursor()
     if data["os"] == "posix":
-        _db_save_posix_attrs(cursor, section, data)
+        _db_save_posix_attrs(cursor, set, data)
 
         if "acl" in data:
             # TODO: write code for save posix ACLs into database
