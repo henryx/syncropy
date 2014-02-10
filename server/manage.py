@@ -10,8 +10,9 @@ __author__ = "enrico"
 
 import logging
 import pickle
-import storage
 import sync
+
+import storage
 
 from concurrent.futures import ProcessPoolExecutor
 

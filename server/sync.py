@@ -103,7 +103,7 @@ class FileSync(Common):
         del self._filestore
 
     def start(self):
-        set = {
+        section = {
             "name": self.section,
             "grace": self.grace,
             "dataset": self.dataset,
@@ -143,6 +143,6 @@ class FileSync(Common):
                 if not data:
                     break
 
-                storage.db_save_attrs(dbs, set, json.loads(data.decode("utf-8")))
+                storage.db_save_attrs(dbs, section, json.loads(data.decode("utf-8")))
             print("Done") # NOTE: For testing only
 
