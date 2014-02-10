@@ -263,6 +263,15 @@ def _db_save_posix_attrs(cursor, section, data):
                     attrs["user"], attrs["group"], attrs["type"], attrs["link"], attrs["mtime"], attrs["ctime"],
                     attrs["hash"], attrs["mode"], section["compressed"]])
 
+def db_del_dataset(dbm, section):
+    cursor = dbm.connection.cursor()
+
+    cursor.execute("DELETE FROM attrs WHERE area = ? AND grace = ? AND dataset = ?",
+                   [section["name"], section["grace"], section["dataset"]])
+    cursor.execute("DELETE FROM acls WHERE area = ? AND grace = ? AND dataset = ?",
+                   [section["name"], section["grace"], section["dataset"]])
+    cursor.close()
+
 def db_save_attrs(dbm, section, data):
     cursor = dbm.connection.cursor()
 

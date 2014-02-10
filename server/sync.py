@@ -119,6 +119,9 @@ class FileSync(Common):
             }
         }
 
+        with storage.Database(self._cfg) as dbs:
+            storage.db_del_dataset(dbs, section)
+
         if self._cfg.getboolean(self._section, "ssl"):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
