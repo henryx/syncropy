@@ -140,14 +140,16 @@ class List(object):
                 for item in p.stdout.readlines():
                     line = item.decode("utf-8")
                     if line[:4] == "user" and line[4:6] != "::":
-                        perms = {}
-                        perms["uid"] = line.split(":")[1]
-                        perms["attrs"] = line.split(":")[2].strip("\n")
+                        perms = {
+                            "uid": line.split(":")[1],
+                            "attrs": line.split(":")[2].strip("\n")
+                        }
                         user.append(perms)
                     elif line[:5] == "group" and line[5:7] != "::":
-                        perms = {}
-                        perms["gid"] = line.split(":")[1]
-                        perms["attrs"] = line.split(":")[2].strip("\n")
+                        perms = {
+                            "gid": line.split(":")[1],
+                            "attrs": line.split(":")[2].strip("\n")
+                        }
                         group.append(perms)
                     """ Useless?
                     elif line[:6] == "# file":
