@@ -237,6 +237,21 @@ def db_get_last_dataset(cfg, grace):
 
     return dataset
 
+def _db_save_posix_acls(cursor, set, data):
+    acls = data["acl"]
+
+    for user in acls["user"]:
+        cursor.execute("INSERT INTO acls"
+                + "(area, grace, dataset, element, name, type, perms)"
+                + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+                       [set["name"], set["grace"], set["dataset"], data["name"], user["uid"], "group", user["attrs"]])
+    for group in acls["group"]:
+        cursor.execute("INSERT INTO acls"
+                + "(area, grace, dataset, element, name, type, perms)"
+                + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+                       [set["name"], set["grace"], set["dataset"], data["name"], group["gid"], "group", group["attrs"]])
+
+
 def _db_save_posix_attrs(cursor, set, data):
     attrs = data["attrs"]
     cursor.execute("INSERT INTO attrs"
@@ -253,7 +268,6 @@ def db_save_attrs(dbm, set, data):
         _db_save_posix_attrs(cursor, set, data)
 
         if "acl" in data:
-            # TODO: write code for save posix ACLs into database
-            pass
+            _db_save_posix_acls(cursor, set, data)
 
     cursor.close()
