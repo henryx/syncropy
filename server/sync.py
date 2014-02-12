@@ -125,6 +125,9 @@ class FileSync(Common):
             storage.db_del_dataset(dbs, section)
         logger.debug(self._section + ": Database cleaned")
 
+        self._filestore.remove()
+        logger.debug(self._section + ": Dataset tree section removed")
+
         if self._cfg.getboolean(self._section, "ssl"):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 

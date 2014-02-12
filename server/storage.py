@@ -25,9 +25,11 @@ Section:
 
 __author__ = "enrico"
 
-import fdb
 import os
 import pickle
+import shutil
+
+import fdb
 
 class Common(object):
     _cfg = None
@@ -241,6 +243,9 @@ class Filesystem(Common):
         elif objtype == "file":
             # TODO: write file to disk
             pass
+
+    def remove(self, previous=False):
+        shutil.rmtree(self._compute_destination(previous))
 
 def db_get_last_dataset(cfg, grace):
 
