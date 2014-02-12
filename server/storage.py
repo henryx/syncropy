@@ -253,48 +253,37 @@ def db_get_last_dataset(cfg, grace):
 
     return dataset
 
-def _db_save_posix_acls(cursor, info, data):
-    acls = data["acl"]
-
-    for user in acls["user"]:
-        cursor.execute("INSERT INTO acls"
-                + "(area, grace, dataset, element, name, type, perms)"
-                + " VALUES(?, ?, ?, ?, ?, ?, ?)",
-                       [info["name"], info["grace"], info["dataset"], data["name"], user["uid"], "group", user["attrs"]])
-    for group in acls["group"]:
-        cursor.execute("INSERT INTO acls"
-                + "(area, grace, dataset, element, name, type, perms)"
-                + " VALUES(?, ?, ?, ?, ?, ?, ?)",
-                       [info["name"], info["grace"], info["dataset"], data["name"], group["gid"], "group", group["attrs"]])
-
-
-def _db_save_posix_attrs(cursor, section, data):
-    attrs = data["attrs"]
-
-    cursor.execute("INSERT INTO attrs"
-                + "(area, grace, dataset, element, os, username, groupname, type,"
-                + " link, mtime, ctime, hash, perms, compressed)"
-                + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                   [section["name"], section["grace"], section["dataset"], data["name"], data["os"],
-                    attrs["user"], attrs["group"], attrs["type"], attrs["link"], attrs["mtime"], attrs["ctime"],
-                    attrs["hash"], attrs["mode"], section["compressed"]])
-
-def db_del_dataset(dbm, section):
-    cursor = dbm.connection.cursor()
-
-    cursor.execute("DELETE FROM attrs WHERE area = ? AND grace = ? AND dataset = ?",
-                   [section["name"], section["grace"], section["dataset"]])
-    cursor.execute("DELETE FROM acls WHERE area = ? AND grace = ? AND dataset = ?",
-                   [section["name"], section["grace"], section["dataset"]])
-    cursor.close()
-
 def db_save_attrs(dbm, section, data):
+    # TODO: Add code for managing Windows systems
+
     cursor = dbm.connection.cursor()
 
-    # TODO: Add code for managing Windows systems
-    if data["os"] == "posix":
-        _db_save_posix_attrs(cursor, section, data)
+    def save_posix_attrs():
+        attrs = data["attrs"]
+
+        cursor.execute("INSERT INTO attrs"
+                    + "(area, grace, dataset, element, os, username, groupname, type,"
+                    + " link, mtime, ctime, hash, perms, compressed)"
+                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                       [section["name"], section["grace"], section["dataset"], data["name"], data["os"],
+                        attrs["user"], attrs["group"], attrs["type"], attrs["link"], attrs["mtime"], attrs["ctime"],
+                        attrs["hash"], attrs["mode"], section["compressed"]])
+
         if "acl" in data:
-            _db_save_posix_acls(cursor, section, data)
+            acls = data["acl"]
+
+            for user in acls["user"]:
+                cursor.execute("INSERT INTO acls"
+                        + "(area, grace, dataset, element, name, type, perms)"
+                        + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+                               [section["name"], section["grace"], section["dataset"], data["name"], user["uid"], "group", user["attrs"]])
+            for group in acls["group"]:
+                cursor.execute("INSERT INTO acls"
+                        + "(area, grace, dataset, element, name, type, perms)"
+                        + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+                               [section["name"], section["grace"], section["dataset"], data["name"], group["gid"], "group", group["attrs"]])
+
+    if data["os"] == "posix":
+        save_posix_attrs()
 
     cursor.close()
