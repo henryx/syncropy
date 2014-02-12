@@ -194,6 +194,7 @@ class Database():
 class Filesystem(Common):
     _logger = None
     _repository = None
+    _destination = None
 
     def __init__(self, cfg):
         super(Filesystem, self).__init__(cfg)
@@ -210,20 +211,19 @@ class Filesystem(Common):
     def section(self, value):
         self._section = pickle.loads(value)
 
-        if not os.path.exists(os.sep.join([self._repository,
-                                           self._grace,
-                                           str(self._dataset),
-                                           self._section])):
-            os.makedirs(os.sep.join([self._repository,
-                                     self._grace,
-                                     str(self._dataset),
-                                     self._section]))
+        self._destination = os.sep.join([self._repository,
+                                   self._grace,
+                                   str(self._dataset),
+                                   self._section])
+
+        if not os.path.exists(self._destination):
+            os.makedirs(self._destination)
 
     @section.deleter
     def section(self):
         del self._section
 
-    def add(self):
+    def add(self, ):
         pass
 
 def db_get_last_dataset(cfg, grace):
