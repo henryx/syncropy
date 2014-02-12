@@ -158,5 +158,6 @@ class FileSync(Common):
                     self._filestore.add(response["name"], response["attrs"]["type"])
             logger.debug(self._section + ": JSON list readed")
             # TODO: Add code for getting files
+        conn.close()
         logger.debug(self._section + ": Sync done")
 
