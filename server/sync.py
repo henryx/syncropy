@@ -6,6 +6,7 @@ Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
 """
 import logging
+import multiprocessing
 
 """
 NOTE:
@@ -148,5 +149,8 @@ class FileSync(Common):
 
                 response = json.loads(data.decode("utf-8"))
                 storage.db_save_attrs(dbs, section, response)
+                if response["attrs"]["type"] == "directory":
+                    self._filestore.add(response["name"], response["attrs"]["type"])
+
             print("Done") # NOTE: For testing only
 

@@ -234,8 +234,13 @@ class Filesystem(Common):
     def section(self):
         del self._section
 
-    def add(self, ):
-        pass
+    def add(self, obj, objtype):
+        if objtype == "directory":
+            path = os.sep.join([self._compute_destination(False), obj])
+            os.makedirs(path)
+        elif objtype == "file":
+            # TODO: write file to disk
+            pass
 
 def db_get_last_dataset(cfg, grace):
 
