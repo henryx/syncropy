@@ -194,7 +194,6 @@ class Database():
 class Filesystem(Common):
     _logger = None
     _repository = None
-    _destination = None
 
     def __init__(self, cfg):
         super(Filesystem, self).__init__(cfg)
@@ -202,6 +201,21 @@ class Filesystem(Common):
         self._repository = self._cfg.get("general", "repository")
         # FIXME: Pickle doesn't serialize the logger
         #self._logger = logging.getLogger("Syncropy")
+
+    def _compute_destination(self, previous):
+        if previous:
+            if self.dataset == 1:
+                dataset = self._cfg.getint("dataset", self._grace)
+            else:
+                dataset = self.dataset - 1
+        else:
+            dataset = self.dataset
+
+        destination = os.sep.join([self._repository,
+                                   self._grace,
+                                   str(dataset),
+                                   self._section])
+        return destination
 
     @property
     def section(self):
@@ -211,13 +225,10 @@ class Filesystem(Common):
     def section(self, value):
         self._section = pickle.loads(value)
 
-        self._destination = os.sep.join([self._repository,
-                                   self._grace,
-                                   str(self._dataset),
-                                   self._section])
+        destination = self._compute_destination(False)
 
-        if not os.path.exists(self._destination):
-            os.makedirs(self._destination)
+        if not os.path.exists(destination):
+            os.makedirs(destination)
 
     @section.deleter
     def section(self):
