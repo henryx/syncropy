@@ -119,9 +119,11 @@ class FileSync(Common):
                 "acl": self._cfg.getboolean(self._section, "acl")
             }
         }
+        logger = logging.getLogger("Syncropy")
 
         with storage.Database(self._cfg) as dbs:
             storage.db_del_dataset(dbs, section)
+        logger.debug(self._section + ": Database cleaned")
 
         if self._cfg.getboolean(self._section, "ssl"):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -137,8 +139,11 @@ class FileSync(Common):
         else:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+        logger.debug(self._section + ": Socket created")
         conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
+        logger.debug(self._section + ": Socket connected")
         conn.send(json.dumps(cmd).encode("utf-8"))
+        logger.debug(self._section + ": JSON command list sended")
 
         with storage.Database(self._cfg) as dbs:
             while True:
@@ -151,6 +156,7 @@ class FileSync(Common):
                 storage.db_save_attrs(dbs, section, response)
                 if response["attrs"]["type"] == "directory":
                     self._filestore.add(response["name"], response["attrs"]["type"])
-
-            print("Done") # NOTE: For testing only
+            logger.debug(self._section + ": JSON list readed")
+            # TODO: Add code for getting files
+        logger.debug(self._section + ": Sync done")
 
