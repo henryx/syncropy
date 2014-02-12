@@ -253,6 +253,15 @@ def db_get_last_dataset(cfg, grace):
 
     return dataset
 
+def db_del_dataset(dbm, section):
+    cursor = dbm.connection.cursor()
+
+    cursor.execute("DELETE FROM attrs WHERE area = ? AND grace = ? AND dataset = ?",
+                   [section["name"], section["grace"], section["dataset"]])
+    cursor.execute("DELETE FROM acls WHERE area = ? AND grace = ? AND dataset = ?",
+                   [section["name"], section["grace"], section["dataset"]])
+    cursor.close()
+
 def db_save_attrs(dbm, section, data):
     # TODO: Add code for managing Windows systems
 
