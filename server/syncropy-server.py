@@ -77,7 +77,7 @@ def go(sysargs):
         cfg.read_file(open(args.cfg, "r"))
 
     if not args.grace:
-        print("Backup mode not definied")
+        print("Backup mode not defined")
         sys.exit(2)
 
     check_structure(cfg.get("general", "repository"))
