@@ -28,6 +28,7 @@ __author__ = "enrico"
 import os
 import pickle
 import shutil
+from contextlib import closing
 
 import fdb
 
@@ -301,3 +302,12 @@ def db_save_attrs(dbm, section, data):
         save_posix_attrs()
 
     cursor.close()
+
+def db_list_items(dbm, section, itemtype):
+    with closing(dbm.connection.cursor()) as cursor:
+        cursor.execute(" ".join(["SELECT element, os, hash, link, mtime,"
+            "ctime FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"]),
+            [itemtype, section["name"], section["grace"], section["dataset"]])
+
+        for item in cursor.fetchall():
+            yield (item,)

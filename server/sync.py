@@ -111,7 +111,7 @@ class FileSync(Common):
             "compressed": False # TODO: get parameter from configuration file (for future implementation)
         }
 
-        cmd = {
+        cmdlist = {
             "context": "file",
             "command": {
                 "name": "list",
@@ -145,7 +145,7 @@ class FileSync(Common):
         logger.debug(self._section + ": Socket created")
         conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
         logger.debug(self._section + ": Socket connected")
-        conn.send(json.dumps(cmd).encode("utf-8"))
+        conn.send(json.dumps(cmdlist).encode("utf-8"))
         logger.debug(self._section + ": JSON command list sended")
 
         with storage.Database(self._cfg) as dbs:
@@ -160,7 +160,9 @@ class FileSync(Common):
                 if response["attrs"]["type"] == "directory":
                     self._filestore.add(response["name"], response["attrs"]["type"])
             logger.debug(self._section + ": JSON list readed")
-            # TODO: Add code for getting files
+
+            for item in storage.db_list_items(dbs, section, "file"):
+                # TODO: Add code for getting files
+                pass
         conn.close()
         logger.debug(self._section + ": Sync done")
-
