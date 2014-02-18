@@ -276,10 +276,10 @@ def db_save_attrs(dbm, section, data):
     def save_posix_attrs():
         attrs = data["attrs"]
 
-        cursor.execute("INSERT INTO attrs"
-                    + "(area, grace, dataset, element, os, username, groupname, type,"
-                    + " link, mtime, ctime, hash, perms, compressed)"
-                    + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+        cursor.execute(" ".join(["INSERT INTO attrs",
+                    "(area, grace, dataset, element, os, username, groupname, type,",
+                    "link, mtime, ctime, hash, perms, compressed)",
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"]),
                        [section["name"], section["grace"], section["dataset"], data["name"], data["os"],
                         attrs["user"], attrs["group"], attrs["type"], attrs["link"], attrs["mtime"], attrs["ctime"],
                         attrs["hash"], attrs["mode"], section["compressed"]])
@@ -288,14 +288,14 @@ def db_save_attrs(dbm, section, data):
             acls = data["acl"]
 
             for user in acls["user"]:
-                cursor.execute("INSERT INTO acls"
-                        + "(area, grace, dataset, element, name, type, perms)"
-                        + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+                cursor.execute(" ".join(["INSERT INTO acls",
+                        "(area, grace, dataset, element, name, type, perms)",
+                        "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
                                [section["name"], section["grace"], section["dataset"], data["name"], user["uid"], "group", user["attrs"]])
             for group in acls["group"]:
-                cursor.execute("INSERT INTO acls"
-                        + "(area, grace, dataset, element, name, type, perms)"
-                        + " VALUES(?, ?, ?, ?, ?, ?, ?)",
+                cursor.execute(" ".join(["INSERT INTO acls",
+                        "(area, grace, dataset, element, name, type, perms)",
+                        "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
                                [section["name"], section["grace"], section["dataset"], data["name"], group["gid"], "group", group["attrs"]])
 
     if data["os"] == "posix":
@@ -305,7 +305,7 @@ def db_save_attrs(dbm, section, data):
 
 def db_list_items(dbm, section, itemtype):
     with closing(dbm.connection.cursor()) as cursor:
-        cursor.execute(" ".join(["SELECT element, os, hash, link, mtime,"
+        cursor.execute(" ".join(["SELECT element, os, hash, link, mtime,",
             "ctime FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"]),
             [itemtype, section["name"], section["grace"], section["dataset"]])
 
