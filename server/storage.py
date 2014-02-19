@@ -138,33 +138,33 @@ class Database():
         ]
 
         tables = [
-            "CREATE TABLE status ("
-            + "grace VARCHAR(5),"
-            + " actual INTEGER,"
-            + " last_run TIMESTAMP)",
-            "CREATE TABLE attrs ("
-            + "area VARCHAR(30),"
-            + " grace VARCHAR(5),"
-            + " dataset INTEGER,"
-            + " element VARCHAR(1024),"
-            + " os VARCHAR(32),"
-            + " username VARCHAR(50),"
-            + " groupname VARCHAR(50),"
-            + " type VARCHAR(9),"
-            + " link VARCHAR(1024),"
-            + " hash VARCHAR(32),"
-            + " perms VARCHAR(32),"
-            + " mtime BIGINT,"
-            + " ctime BIGINT,"
-            + "compressed BOOLEAN)",
-            "CREATE TABLE acls ("
-            + "area VARCHAR(30),"
-            + " grace VARCHAR(5),"
-            + " dataset INTEGER,"
-            + " element VARCHAR(1024),"
-            + " name VARCHAR(50),"
-            + " type VARCHAR(5),"
-            + " perms VARCHAR(3))"
+            " ".join(["CREATE TABLE status (",
+                      "grace VARCHAR(5),",
+                      " actual INTEGER,",
+                      " last_run TIMESTAMP)"]),
+            " ".join(["CREATE TABLE attrs (",
+                      "area VARCHAR(30),",
+                      "grace VARCHAR(5),",
+                      "dataset INTEGER,",
+                      "element VARCHAR(1024),",
+                      "os VARCHAR(32),",
+                      "username VARCHAR(50),",
+                      "groupname VARCHAR(50),",
+                      "type VARCHAR(9),",
+                      "link VARCHAR(1024),",
+                      "hash VARCHAR(32),",
+                      "perms VARCHAR(32),",
+                      "mtime BIGINT,",
+                      "ctime BIGINT,",
+                      "compressed BOOLEAN)"]),
+            " ".join(["CREATE TABLE acls (",
+                      "area VARCHAR(30),",
+                      "grace VARCHAR(5),",
+                      "dataset INTEGER,",
+                      "element VARCHAR(1024),",
+                      "name VARCHAR(50),",
+                      "type VARCHAR(5),",
+                      "perms VARCHAR(3))"])
         ]
 
         data = [
