@@ -125,9 +125,9 @@ class Database():
 
         cursor.close()
 
-def fs_add(cfg, sefilenameonfilebj, objtype):
+def fs_add(cfg, section, filename, objtype):
     if objtype == "directory":
-        path = os.sep.join([fs_compute_destination(cfg, section, Ffilenamee), obj])
+        path = os.sep.join([fs_compute_destination(cfg, section, filename), filename])
         os.makedirs(path)
     if objtype == "file":
         # TODO: write file to disk
