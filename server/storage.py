@@ -125,11 +125,11 @@ class Database():
 
         cursor.close()
 
-def fs_add(cfg, section, filename, objtype):
-    if objtype == "directory":
+def fs_add(cfg, section, filename, filetype):
+    if filetype == "directory":
         path = os.sep.join([fs_compute_destination(cfg, section, filename), filename])
         os.makedirs(path)
-    if objtype == "file":
+    if filetype == "file":
         # TODO: write file to disk
         pass
 
