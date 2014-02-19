@@ -125,7 +125,7 @@ class FileSync(Common):
             storage.db_del_dataset(dbs, section)
         logger.debug(self._section + ": Database cleaned")
 
-        self._filestore.remove()
+        storage.fs_remove_dataset(self._cfg, section)
         logger.debug(self._section + ": Dataset tree section removed")
 
         if self._cfg.getboolean(self._section, "ssl"):
@@ -158,7 +158,7 @@ class FileSync(Common):
                 response = json.loads(data.decode("utf-8"))
                 storage.db_save_attrs(dbs, section, response)
                 if response["attrs"]["type"] == "directory":
-                    self._filestore.add(response["name"], response["attrs"]["type"])
+                    storage.fs_add(self._cfg, section, response["name"], response["attrs"]["type"])
             logger.debug(self._section + ": JSON list readed")
 
             for item in storage.db_list_items(dbs, section, "file"):

@@ -16,6 +16,23 @@ import storage
 
 from concurrent.futures import ProcessPoolExecutor
 
+"""
+NOTE:
+
+Grace:
+    Hourly backup;
+    Daily backup;
+    Weekly backup;
+    Monthly backup
+
+Dataset:
+    An incremental for grace backup
+
+Section:
+    A machine that backup
+
+"""
+
 class Common(object):
     _cfg = None
     _grace = None
@@ -71,19 +88,12 @@ class Sync(Common):
 
         with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
             for section in sections:
-                fsstore = storage.Filesystem(pickle.dumps(self._cfg))
-
-                fsstore.grace = pickle.dumps(self._grace)
-                fsstore.dataset = pickle.dumps(dataset)
-                fsstore.section = pickle.dumps(section)
-
                 if self._cfg.get(section, "type") == "file":
                     filesync = sync.FileSync(pickle.dumps(self._cfg))
 
                     filesync.grace = pickle.dumps(self._grace)
                     filesync.dataset = pickle.dumps(dataset)
                     filesync.section = pickle.dumps(section)
-                    filesync.filestore = pickle.dumps(fsstore)
 
                     pool.submit(filesync.start)
 

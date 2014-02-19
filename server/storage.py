@@ -6,82 +6,13 @@ Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
 """
 
-"""
-NOTE:
-
-Grace:
-    Hourly backup;
-    Daily backup;
-    Weekly backup;
-    Monthly backup
-
-Dataset:
-    An incremental for grace backup
-
-Section:
-    A machine that backup
-
-"""
-
 __author__ = "enrico"
 
 import os
-import pickle
 import shutil
 from contextlib import closing
 
 import fdb
-
-class Common(object):
-    _cfg = None
-    _grace = None
-    _dataset = None
-    _section = None
-
-    def __init__(self, cfg):
-        self._cfg = pickle.loads(cfg)
-
-    @property
-    def grace(self):
-        return self._grace
-
-    @grace.setter
-    def grace(self, value):
-        self._grace = pickle.loads(value)
-
-    @grace.deleter
-    def grace(self):
-        del self._grace
-
-    @property
-    def dataset(self):
-        return self._dataset
-
-    @dataset.setter
-    def dataset(self, value):
-        if not self._grace:
-            raise AttributeError("Grace not defined")
-
-        self._dataset = pickle.loads(value)
-
-    @dataset.deleter
-    def dataset(self):
-        del self._dataset
-
-    @property
-    def section(self):
-        return self._section
-
-    @section.setter
-    def section(self, value):
-        if not self._dataset:
-            raise AttributeError("Dataset not defined")
-
-        self._section = pickle.loads(value)
-
-    @section.deleter
-    def section(self):
-        del self._section
 
 class Database():
     _conn = None
@@ -194,59 +125,33 @@ class Database():
 
         cursor.close()
 
-class Filesystem(Common):
-    _logger = None
-    _repository = None
+def fs_add(cfg, sefilenameonfilebj, objtype):
+    if objtype == "directory":
+        path = os.sep.join([fs_compute_destination(cfg, section, Ffilenamee), obj])
+        os.makedirs(path)
+    if objtype == "file":
+        # TODO: write file to disk
+        pass
 
-    def __init__(self, cfg):
-        super(Filesystem, self).__init__(cfg)
+def fs_remove_dataset(cfg, section, previous=False):
+    dataset = fs_compute_destination(cfg, section, previous)
+    if os.path.exists(dataset):
+        shutil.rmtree(dataset)
 
-        self._repository = self._cfg.get("general", "repository")
-        # FIXME: Pickle doesn't serialize the logger
-        #self._logger = logging.getLogger("Syncropy")
-
-    def _compute_destination(self, previous):
-        if previous:
-            if self.dataset == 1:
-                dataset = self._cfg.getint("dataset", self._grace)
-            else:
-                dataset = self.dataset - 1
+def fs_compute_destination(cfg, section, previous):
+    if previous:
+        if section["dataset"] == 1:
+            dataset = cfg.getint("dataset", section["grace"])
         else:
-            dataset = self.dataset
+            dataset = section["dataset"] - 1
+    else:
+        dataset = section["dataset"]
 
-        destination = os.sep.join([self._repository,
-                                   self._grace,
-                                   str(dataset),
-                                   self._section])
-        return destination
-
-    @property
-    def section(self):
-        return self._section
-
-    @section.setter
-    def section(self, value):
-        self._section = pickle.loads(value)
-
-        destination = self._compute_destination(False)
-
-        if not os.path.exists(destination):
-            os.makedirs(destination)
-
-    @section.deleter
-    def section(self):
-        del self._section
-
-    def add(self, obj, objtype):
-        if objtype == "directory":
-            path = os.sep.join([self._compute_destination(False), obj])
-            os.makedirs(path)
-        elif objtype == "file":
-            # TODO: write file to disk
-            pass
-
-    def remove(self, previous=False):
-        shutil.rmtree(self._compute_destination(previous))
+    destination = os.sep.join([cfg.get("general", "repository"),
+                               section["grace"],
+                               str(dataset),
+                               section["name"]])
+    return destination
 
 def db_get_last_dataset(cfg, grace):
 
