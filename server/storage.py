@@ -126,7 +126,7 @@ class Database():
         cursor.close()
 
 def fs_create_dir(cfg, section, dirname):
-    path = os.sep.join([fs_compute_destination(cfg, section, dirname), False])
+    path = os.sep.join([fs_compute_destination(cfg, section, False), dirname])
     os.makedirs(path)
 
 def fs_get_file(cfg, section,filename, conn):
