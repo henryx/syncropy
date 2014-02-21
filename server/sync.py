@@ -158,7 +158,7 @@ class FileSync(Common):
                 response = json.loads(data.decode("utf-8"))
                 storage.db_save_attrs(dbs, section, response)
                 if response["attrs"]["type"] == "directory":
-                    storage.fs_add(self._cfg, section, response["name"], response["attrs"]["type"])
+                    storage.fs_create_dir(self._cfg, section, response["name"])
             logger.debug(self._section + ": JSON list readed")
 
             for item in storage.db_list_items(dbs, section, "file"):

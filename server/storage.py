@@ -125,13 +125,12 @@ class Database():
 
         cursor.close()
 
-def fs_add(cfg, section, filename, filetype):
-    if filetype == "directory":
-        path = os.sep.join([fs_compute_destination(cfg, section, filename), filename])
-        os.makedirs(path)
-    if filetype == "file":
-        # TODO: write file to disk
-        pass
+def fs_create_dir(cfg, section, dirname):
+    path = os.sep.join([fs_compute_destination(cfg, section, dirname), False])
+    os.makedirs(path)
+
+def fs_get_file(cfg, section,filename, conn):
+    pass
 
 def fs_remove_dataset(cfg, section, previous=False):
     dataset = fs_compute_destination(cfg, section, previous)
