@@ -155,9 +155,12 @@ class FileSync(Common):
         conn.close()
 
     def _get_data(self, section):
-        for item in storage.db_list_items(dbs, section, "file"):
-            # TODO: Add code for getting files
-            pass
+        conn = self._get_conn()
+        with storage.Database(self._cfg) as dbs:
+            for item in storage.db_list_items(dbs, section, "file"):
+                storage.fs_save_file(self._cfg, section, item[0], conn)
+        conn.shutdown(socket.SHUT_RDWR)
+        conn.close()
 
     def start(self):
         section = {

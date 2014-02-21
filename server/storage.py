@@ -8,6 +8,7 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
+import json
 import os
 import shutil
 from contextlib import closing
@@ -129,8 +130,24 @@ def fs_create_dir(cfg, section, dirname):
     path = os.sep.join([fs_compute_destination(cfg, section, False), dirname])
     os.makedirs(path)
 
-def fs_get_file(cfg, section,filename, conn):
-    pass
+def fs_save_file(cfg, section,filename, conn):
+    cmdget = {
+        "context": "file",
+        "command": {
+            "name": "get",
+            "filename": filename
+        }
+    }
+
+    path = os.sep.join([fs_compute_destination(cfg, section, False), filename])
+    conn.send(json.dumps(cmdget).encode("utf-8"))
+
+    with open(path, "wb") as destfile:
+        while True:
+            data = conn.recv(2048)
+            if not data:
+                break
+            destfile.write(data)
 
 def fs_remove_dataset(cfg, section, previous=False):
     dataset = fs_compute_destination(cfg, section, previous)
@@ -214,4 +231,4 @@ def db_list_items(dbm, section, itemtype):
             [itemtype, section["name"], section["grace"], section["dataset"]])
 
         for item in cursor.fetchall():
-            yield (item,)
+            yield item
