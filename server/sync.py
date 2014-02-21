@@ -5,8 +5,6 @@ Project       Syncropy-ng
 Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
 """
-import logging
-import multiprocessing
 
 """
 NOTE:
@@ -28,6 +26,7 @@ Section:
 __author__ = "enrico"
 
 import json
+import logging
 import pickle
 import socket
 import ssl
@@ -103,31 +102,8 @@ class FileSync(Common):
     def filestore(self):
         del self._filestore
 
-    def start(self):
-        section = {
-            "name": self.section,
-            "grace": self.grace,
-            "dataset": self.dataset,
-            "compressed": False # TODO: get parameter from configuration file (for future implementation)
-        }
-
-        cmdlist = {
-            "context": "file",
-            "command": {
-                "name": "list",
-                "directory": self._cfg.get(self._section, "path").split(","),
-                "acl": self._cfg.getboolean(self._section, "acl")
-            }
-        }
+    def _get_conn(self):
         logger = logging.getLogger("Syncropy")
-
-        with storage.Database(self._cfg) as dbs:
-            storage.db_del_dataset(dbs, section)
-        logger.debug(self._section + ": Database cleaned")
-
-        storage.fs_remove_dataset(self._cfg, section)
-        logger.debug(self._section + ": Dataset tree section removed")
-
         if self._cfg.getboolean(self._section, "ssl"):
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -141,8 +117,23 @@ class FileSync(Common):
             conn = context.wrap_socket(sock)
         else:
             conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
         logger.debug(self._section + ": Socket created")
+
+        return conn
+
+    def _get_metadata(self, section):
+        logger = logging.getLogger("Syncropy")
+        cmdlist = {
+            "context": "file",
+            "command": {
+                "name": "list",
+                "directory": self._cfg.get(self._section, "path").split(","),
+                "acl": self._cfg.getboolean(self._section, "acl")
+            }
+        }
+
+        conn = self._get_conn()
+
         conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
         logger.debug(self._section + ": Socket connected")
         conn.send(json.dumps(cmdlist).encode("utf-8"))
@@ -159,10 +150,33 @@ class FileSync(Common):
                 storage.db_save_attrs(dbs, section, response)
                 if response["attrs"]["type"] == "directory":
                     storage.fs_create_dir(self._cfg, section, response["name"])
-            logger.debug(self._section + ": JSON list readed")
-
-            for item in storage.db_list_items(dbs, section, "file"):
-                # TODO: Add code for getting files
-                pass
+        logger.debug(self._section + ": JSON list readed")
+        conn.shutdown(socket.SHUT_RDWR)
         conn.close()
+
+    def _get_data(self, section):
+        for item in storage.db_list_items(dbs, section, "file"):
+            # TODO: Add code for getting files
+            pass
+
+    def start(self):
+        section = {
+            "name": self.section,
+            "grace": self.grace,
+            "dataset": self.dataset,
+            "compressed": False # TODO: get parameter from configuration file (for future implementation)
+        }
+
+        logger = logging.getLogger("Syncropy")
+
+        with storage.Database(self._cfg) as dbs:
+            storage.db_del_dataset(dbs, section)
+        logger.debug(self._section + ": Database cleaned")
+
+        storage.fs_remove_dataset(self._cfg, section)
+        logger.debug(self._section + ": Dataset tree section removed")
+
+        self._get_metadata(section)
+        self._get_data(section)
+
         logger.debug(self._section + ": Sync done")
