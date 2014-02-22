@@ -84,7 +84,8 @@ def parse(command, conn):
                 res = files.Send()
                 res.filename = cmd["command"]["filename"]
 
-                conn.send(res.data())
+                for data in res.data():
+                    conn.send(data)
             else:
                 conn.send(json.dumps({"result": "ko", "message": "Command not found"}).encode("utf-8"))
         elif cmd["context"] == "system":
