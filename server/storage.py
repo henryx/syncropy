@@ -9,6 +9,7 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import json
+import logging
 import os
 import shutil
 from contextlib import closing
@@ -131,6 +132,8 @@ def fs_create_dir(cfg, section, dirname):
     os.makedirs(path)
 
 def fs_save_file(cfg, section,filename, conn):
+    logger = logging.getLogger("Syncropy")
+
     cmdget = {
         "context": "file",
         "command": {
@@ -142,6 +145,7 @@ def fs_save_file(cfg, section,filename, conn):
     path = os.sep.join([fs_compute_destination(cfg, section, False), filename])
     conn.send(json.dumps(cmdget).encode("utf-8"))
 
+    logger.debug(section["name"] + ": Transfer file " + filename)
     with open(path, "wb") as destfile:
         while True:
             data = conn.recv(2048)
