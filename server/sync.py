@@ -151,16 +151,15 @@ class FileSync(Common):
                 if response["attrs"]["type"] == "directory":
                     storage.fs_create_dir(self._cfg, section, response["name"])
         logger.debug(self._section + ": JSON list readed")
-        conn.shutdown(socket.SHUT_RDWR)
         conn.close()
 
     def _get_data(self, section):
-        conn = self._get_conn()
         with storage.Database(self._cfg) as dbs:
             for item in storage.db_list_items(dbs, section, "file"):
+                conn = self._get_conn()
+                conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
                 storage.fs_save_file(self._cfg, section, item[0], conn)
-        conn.shutdown(socket.SHUT_RDWR)
-        conn.close()
+                conn.close()
 
     def start(self):
         section = {
