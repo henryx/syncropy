@@ -138,6 +138,7 @@ def serve(port, address=None, sslparams=None):
         finally:
             try:
                 stream.shutdown(socket.SHUT_RDWR)
+                stream.close()
             except:
                 pass
             conn.close()
