@@ -123,10 +123,10 @@ def serve(port, address=None, sslparams=None):
                                         password=sslparams["password"])
                 stream = context.wrap_socket(conn, server_side=True)
 
-                data = stream.read()
+                data = stream.recv(4096)
                 execute = parse(data, stream)
             else:
-                data = conn.read()
+                data = conn.recv(4096)
                 execute = parse(data, conn)
 
         except UnicodeDecodeError:
