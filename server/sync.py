@@ -154,11 +154,20 @@ class FileSync(Common):
         conn.close()
 
     def _get_data(self, section):
+        if (section["dataset"] - 1) == 0:
+            previous = self._cfg.getint("dataset", self._grace)
+        else:
+            previous = section["dataset"] - 1
+
         with storage.Database(self._cfg) as dbs:
             for item in storage.db_list_items(dbs, section, "file"):
                 conn = self._get_conn()
                 conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
-                storage.fs_save_file(self._cfg, section, item[0], conn)
+                if storage.db_item_exist(dbs, section, item, previous):
+                    # TODO: hard link file from previous dataset
+                    pass
+                else:
+                    storage.fs_save_file(self._cfg, section, item[0], conn)
                 conn.close()
 
     def start(self):

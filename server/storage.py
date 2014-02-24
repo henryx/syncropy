@@ -236,3 +236,22 @@ def db_list_items(dbm, section, itemtype):
 
         for item in cursor.fetchall():
             yield item
+
+def db_item_exist(dbm, section, item, previous=None):
+    if previous:
+        dataset = previous
+    else:
+        dataset = section["dataset"]
+
+    with closing(dbm.connection.cursor()) as cursor:
+        cursor.execute(" ".join(["SELECT count(*) FROM attrs",
+                                 "WHERE element = ? AND hash = ?",
+                                 " AND area = ? AND grace = ? AND dataset = ?"]),
+                       [item[0], item[2], section["name"], section["grace"], dataset])
+
+        items = cursor.fetchone()
+
+        if items[0] > 0:
+            return True
+        else:
+            return False
