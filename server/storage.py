@@ -184,6 +184,11 @@ def db_get_last_dataset(cfg, grace):
 
     return dataset
 
+def db_set_last_dataset(cfg, grace, dataset):
+    with Database(cfg) as dbm:
+        with closing(dbm.connection.cursor()) as cursor:
+            cursor.execute("UPDATE status SET actual = ?, last_run = CURRENT_TIMESTAMP WHERE grace = ?", [dataset, grace])
+
 def db_del_dataset(dbm, section):
     cursor = dbm.connection.cursor()
 

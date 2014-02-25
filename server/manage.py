@@ -97,6 +97,8 @@ class Sync(Common):
 
                     pool.submit(filesync.start)
 
+        storage.db_set_last_dataset(self._cfg, self.grace, dataset)
+
 class Remove(Common):
     def __init__(self, cfg):
         super(Remove, self).__init__(cfg)
