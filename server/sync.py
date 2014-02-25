@@ -142,7 +142,7 @@ class FileSync(Common):
 
         with storage.Database(self._cfg) as dbs:
             while True:
-                data = conn.read()
+                data = conn.recv(4096)
 
                 if not data:
                     break
