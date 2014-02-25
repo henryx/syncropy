@@ -162,14 +162,14 @@ class FileSync(Common):
 
         with storage.Database(self._cfg) as dbs:
             for item in storage.db_list_items(dbs, section, "file"):
-                conn = self._get_conn()
-                conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
                 if storage.db_item_exist(dbs, section, item, previous):
                     os.link(os.sep.join([storage.fs_compute_destination(self._cfg, section, True), item[0]]),
                             os.sep.join([storage.fs_compute_destination(self._cfg, section, False), item[0]]))
                 else:
+                    conn = self._get_conn()
+                    conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
                     storage.fs_save_file(self._cfg, section, item[0], conn)
-                conn.close()
+                    conn.close()
 
     def start(self):
         section = {
