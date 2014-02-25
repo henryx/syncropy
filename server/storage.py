@@ -176,11 +176,9 @@ def fs_compute_destination(cfg, section, previous):
 def db_get_last_dataset(cfg, grace):
 
     with Database(cfg) as dbs:
-        cur = dbs.connection.cursor()
-
-        cur.execute("SELECT actual FROM status WHERE grace = ?", [grace])
-        dataset = cur.fetchone()[0]
-        cur.close()
+        with closing(dbs.connection.cursor()) as cur:
+            cur.execute("SELECT actual FROM status WHERE grace = ?", [grace])
+            dataset = cur.fetchone()[0]
 
     return dataset
 
@@ -190,18 +188,14 @@ def db_set_last_dataset(cfg, grace, dataset):
             cursor.execute("UPDATE status SET actual = ?, last_run = CURRENT_TIMESTAMP WHERE grace = ?", [dataset, grace])
 
 def db_del_dataset(dbm, section):
-    cursor = dbm.connection.cursor()
-
-    cursor.execute("DELETE FROM attrs WHERE area = ? AND grace = ? AND dataset = ?",
-                   [section["name"], section["grace"], section["dataset"]])
-    cursor.execute("DELETE FROM acls WHERE area = ? AND grace = ? AND dataset = ?",
-                   [section["name"], section["grace"], section["dataset"]])
-    cursor.close()
+    with closing(dbm.connection.cursor()) as cursor:
+        cursor.execute("DELETE FROM attrs WHERE area = ? AND grace = ? AND dataset = ?",
+                       [section["name"], section["grace"], section["dataset"]])
+        cursor.execute("DELETE FROM acls WHERE area = ? AND grace = ? AND dataset = ?",
+                       [section["name"], section["grace"], section["dataset"]])
 
 def db_save_attrs(dbm, section, data):
     # TODO: Add code for managing Windows systems
-
-    cursor = dbm.connection.cursor()
 
     def save_posix_attrs():
         attrs = data["attrs"]
@@ -228,10 +222,9 @@ def db_save_attrs(dbm, section, data):
                         "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
                                [section["name"], section["grace"], section["dataset"], data["name"], group["gid"], "group", group["attrs"]])
 
-    if data["os"] == "posix":
-        save_posix_attrs()
-
-    cursor.close()
+    with closing(dbm.connection.cursor()) as cursor:
+        if data["os"] == "posix":
+            save_posix_attrs()
 
 def db_list_items(dbm, section, itemtype):
     with closing(dbm.connection.cursor()) as cursor:
