@@ -27,6 +27,7 @@ __author__ = "enrico"
 
 import json
 import logging
+import os
 import pickle
 import socket
 import ssl
@@ -164,8 +165,8 @@ class FileSync(Common):
                 conn = self._get_conn()
                 conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
                 if storage.db_item_exist(dbs, section, item, previous):
-                    # TODO: hard link file from previous dataset
-                    pass
+                    os.link(os.sep.join([storage.fs_compute_destination(self._cfg, section, True), item[0]]),
+                            os.sep.join([storage.fs_compute_destination(self._cfg, section, False), item[0]]))
                 else:
                     storage.fs_save_file(self._cfg, section, item[0], conn)
                 conn.close()
