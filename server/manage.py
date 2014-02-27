@@ -89,13 +89,14 @@ class Sync(Common):
         with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
             for section in sections:
                 if self._cfg.get(section, "type") == "file":
-                    filesync = sync.FileSync(pickle.dumps(self._cfg))
+                    section = {
+                        "name": section,
+                        "grace": self._grace,
+                        "dataset": dataset,
+                        "compressed": False  # TODO: get parameter from configuration file (for future implementation)
+                    }
 
-                    filesync.grace = pickle.dumps(self._grace)
-                    filesync.dataset = pickle.dumps(dataset)
-                    filesync.section = pickle.dumps(section)
-
-                    pool.submit(filesync.start)
+                    pool.submit(sync.fs_start, pickle.dumps(self._cfg), pickle.dumps(section))
 
         storage.db_set_last_dataset(self._cfg, self.grace, dataset)
 

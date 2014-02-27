@@ -34,161 +34,89 @@ import ssl
 
 import storage
 
-class Common(object):
-    _cfg = None
-    _section = None
-    _grace = None
-    _dataset = None
+def fs_get_conn(cfg, section):
+    logger = logging.getLogger("Syncropy")
+    if cfg.getboolean(section, "ssl"):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
-    def __init__(self, cfg):
-        self._cfg = pickle.loads(cfg)
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.load_cert_chain(
+            certfile=cfg.get(section, "sslcert"),
+            keyfile=cfg.get(section, "sslkey"),
+            password=cfg.get(section, "sslpass")
+        )
 
-    @property
-    def section(self):
-        return self._section
+        conn = context.wrap_socket(sock)
+    else:
+        conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    logger.debug(section + ": Socket created")
 
-    @section.setter
-    def section(self, value):
-        if not self._dataset:
-            raise AttributeError("Dataset not defined")
+    return conn
 
-        self._section = pickle.loads(value)
-
-    @section.deleter
-    def section(self):
-        del self._section
-
-    @property
-    def grace(self):
-        return self._grace
-
-    @grace.setter
-    def grace(self, value):
-        self._grace = pickle.loads(value)
-
-    @grace.deleter
-    def grace(self):
-        del self._grace
-
-    @property
-    def dataset(self):
-        return self._dataset
-
-    @dataset.setter
-    def dataset(self, value):
-        if not self._grace:
-            raise AttributeError("Grace not defined")
-
-        self._dataset = pickle.loads(value)
-
-    @dataset.deleter
-    def dataset(self):
-        del self._dataset
-
-class FileSync(Common):
-    _filestore = None
-
-    def __init__(self, cfg):
-        super(FileSync, self).__init__(cfg)
-
-    @property
-    def filestore(self):
-        return self._filestore
-
-    @filestore.setter
-    def filestore(self, value):
-        self._filestore = pickle.loads(value)
-
-    @filestore.deleter
-    def filestore(self):
-        del self._filestore
-
-    def _get_conn(self):
-        logger = logging.getLogger("Syncropy")
-        if self._cfg.getboolean(self._section, "ssl"):
-            sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-            context.load_cert_chain(
-                certfile=self._cfg.get(self._section, "sslcert"),
-                keyfile=self._cfg.get(self._section, "sslkey"),
-                password=self._cfg.get(self._section, "sslpass")
-            )
-
-            conn = context.wrap_socket(sock)
-        else:
-            conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        logger.debug(self._section + ": Socket created")
-
-        return conn
-
-    def _get_metadata(self, section):
-        logger = logging.getLogger("Syncropy")
-        cmdlist = {
-            "context": "file",
-            "command": {
-                "name": "list",
-                "directory": self._cfg.get(self._section, "path").split(","),
-                "acl": self._cfg.getboolean(self._section, "acl")
-            }
+def fs_get_metadata(cfg, section):
+    logger = logging.getLogger("Syncropy")
+    cmdlist = {
+        "context": "file",
+        "command": {
+            "name": "list",
+            "directory": cfg.get(section["name"], "path").split(","),
+            "acl": cfg.getboolean(section["name"], "acl")
         }
+    }
 
-        conn = self._get_conn()
+    conn = fs_get_conn(cfg, section["name"])
 
-        conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
-        logger.debug(self._section + ": Socket connected")
-        conn.send(json.dumps(cmdlist).encode("utf-8"))
-        logger.debug(self._section + ": JSON command list sended")
+    conn.connect((cfg.get(section["name"], "host"), cfg.getint(section["name"], "port")))
+    logger.debug(section["name"] + ": Socket connected")
+    conn.send(json.dumps(cmdlist).encode("utf-8"))
+    logger.debug(section["name"] + ": JSON command list sended")
 
-        with storage.Database(self._cfg) as dbs:
-            while True:
-                data = conn.recv(4096)
+    with storage.Database(cfg) as dbs:
+        while True:
+            data = conn.recv(4096)
 
-                if not data:
-                    break
+            if not data:
+                break
+            print(len(data))
 
-                response = json.loads(data.decode("utf-8"))
-                storage.db_save_attrs(dbs, section, response)
-                if response["attrs"]["type"] == "directory":
-                    storage.fs_create_dir(self._cfg, section, response["name"])
-        logger.debug(self._section + ": JSON list readed")
-        conn.close()
+            response = json.loads(data.decode("utf-8"))
+            storage.db_save_attrs(dbs, section, response)
+            if response["attrs"]["type"] == "directory":
+                storage.fs_create_dir(cfg, section, response["name"])
 
-    def _get_data(self, section):
-        if (section["dataset"] - 1) == 0:
-            previous = self._cfg.getint("dataset", self._grace)
-        else:
-            previous = section["dataset"] - 1
+    logger.debug(section["name"] + ": JSON list readed")
+    conn.close()
 
-        with storage.Database(self._cfg) as dbs:
-            for item in storage.db_list_items(dbs, section, "file"):
-                if storage.db_item_exist(dbs, section, item, previous):
-                    os.link(os.sep.join([storage.fs_compute_destination(self._cfg, section, True), item[0]]),
-                            os.sep.join([storage.fs_compute_destination(self._cfg, section, False), item[0]]))
-                else:
-                    conn = self._get_conn()
-                    conn.connect((self._cfg.get(self._section, "host"), self._cfg.getint(self._section, "port")))
-                    storage.fs_save_file(self._cfg, section, item[0], conn)
-                    conn.close()
+def fs_get_data(cfg, section):
+    if (section["dataset"] - 1) == 0:
+        previous = cfg.getint("dataset", section["grace"])
+    else:
+        previous = section["dataset"] - 1
 
-    def start(self):
-        section = {
-            "name": self.section,
-            "grace": self.grace,
-            "dataset": self.dataset,
-            "compressed": False # TODO: get parameter from configuration file (for future implementation)
-        }
+    with storage.Database(cfg) as dbs:
+        for item in storage.db_list_items(dbs, section, "file"):
+            if storage.db_item_exist(dbs, section, item, previous):
+                os.link(os.sep.join([storage.fs_compute_destination(cfg, section, True), item[0]]),
+                        os.sep.join([storage.fs_compute_destination(cfg, section, False), item[0]]))
+            else:
+                conn = fs_get_conn(cfg, section["name"])
+                conn.connect((cfg.get(section["name"], "host"), cfg.getint(section["name"], "port")))
+                storage.fs_save_file(cfg, section, item[0], conn)
+                conn.close()
 
-        logger = logging.getLogger("Syncropy")
+def fs_start(conf, process):
+    cfg = pickle.loads(conf)
+    section = pickle.loads(process)
+    logger = logging.getLogger("Syncropy")
 
-        with storage.Database(self._cfg) as dbs:
-            storage.db_del_dataset(dbs, section)
-        logger.debug(self._section + ": Database cleaned")
+    with storage.Database(cfg) as dbs:
+        storage.db_del_dataset(dbs, section)
+    logger.debug(section["name"] + ": Database cleaned")
 
-        storage.fs_remove_dataset(self._cfg, section)
-        logger.debug(self._section + ": Dataset tree section removed")
+    storage.fs_remove_dataset(cfg, section)
+    logger.debug(section["name"] + ": Dataset tree section removed")
 
-        self._get_metadata(section)
-        self._get_data(section)
+    fs_get_metadata(cfg, section)
+    fs_get_data(cfg, section)
 
-        logger.debug(self._section + ": Sync done")
+    logger.debug(section["name"] + ": Sync done")
