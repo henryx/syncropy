@@ -104,6 +104,8 @@ def fs_start(conf, process):
     section = pickle.loads(process)
     logger = logging.getLogger("Syncropy")
 
+    logger.info("About to execute " + section["name"])
+
     with storage.Database(cfg) as dbs:
         storage.db_del_dataset(dbs, section)
     logger.debug(section["name"] + ": Database cleaned")

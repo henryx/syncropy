@@ -84,7 +84,7 @@ class Sync(Common):
             dataset = dataset + 1
 
         logger = logging.getLogger("Syncropy")
-        logger.info("Started backup")
+        logger.info("Started " + self.grace + " backup for dataset " + str(dataset))
 
         with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
             for section in sections:
@@ -99,6 +99,7 @@ class Sync(Common):
                     pool.submit(sync.fs_start, pickle.dumps(self._cfg), pickle.dumps(section))
 
         storage.db_set_last_dataset(self._cfg, self.grace, dataset)
+        logger.info("Backup ended")
 
 class Remove(Common):
     def __init__(self, cfg):
