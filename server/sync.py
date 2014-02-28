@@ -72,14 +72,9 @@ def fs_get_metadata(cfg, section):
     logger.debug(section["name"] + ": JSON command list sended")
 
     with storage.Database(cfg) as dbs:
-        while True:
-            data = conn.recv(4096)
-
-            if not data:
-                break
-            print(len(data))
-
-            response = json.loads(data.decode("utf-8"))
+        f = conn.makefile()
+        for data in f:
+            response = json.loads(data)
             storage.db_save_attrs(dbs, section, response)
             if response["attrs"]["type"] == "directory":
                 storage.fs_create_dir(cfg, section, response["name"])

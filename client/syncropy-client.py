@@ -77,7 +77,7 @@ def parse(command, conn):
                     res.acl = cmd["command"]["acl"]
 
                     for item in res.get():
-                        conn.send(item.encode("utf-8"))
+                        conn.send((item + "\n").encode("utf-8"))
                 except ValueError as ex:
                     conn.send(json.dumps({"result": "ko", "message": str(ex)}).encode("utf-8"))
             elif cmd["command"]["name"] == "get":
