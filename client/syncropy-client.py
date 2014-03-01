@@ -56,15 +56,15 @@ def exec_command(cmd, conn):
             message["result"] = "ok"
             message["message"] = "Command successful"
 
-        conn.send(json.dumps(message).encode("utf-8"))
+        conn.send((json.dumps(message) + "\n").encode("utf-8"))
     except subprocess.CalledProcessError as e:
-        conn.send(json.dumps({"result": "ko", "error": str(e)}).encode("utf-8"))
+        conn.send((json.dumps({"result": "ko", "error": str(e)}) + "\n").encode("utf-8"))
 
 def parse(command, conn):
     try:
         cmd = json.loads(command.decode('utf-8'))
     except ValueError:
-        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}).encode("utf-8"))
+        conn.send((json.dumps({"result": "ko", "message": "Malformed command"}) + "\n").encode("utf-8"))
         return True
 
     try:
@@ -79,7 +79,7 @@ def parse(command, conn):
                     for item in res.get():
                         conn.send((item + "\n").encode("utf-8"))
                 except ValueError as ex:
-                    conn.send(json.dumps({"result": "ko", "message": str(ex)}).encode("utf-8"))
+                    conn.send((json.dumps({"result": "ko", "message": str(ex)}) + "\n").encode("utf-8"))
             elif cmd["command"]["name"] == "get":
                 res = files.Send()
                 res.filename = cmd["command"]["filename"]
@@ -87,16 +87,16 @@ def parse(command, conn):
                 for data in res.data():
                     conn.send(data)
             else:
-                conn.send(json.dumps({"result": "ko", "message": "Command not found"}).encode("utf-8"))
+                conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
                 exec_command(cmd["command"]["value"], conn)
             elif cmd["command"]["name"] == "exit":
                 result = False
         else:
-            conn.send(json.dumps({"result": "ko", "message": "Context not found"}).encode("utf-8"))
+            conn.send((json.dumps({"result": "ko", "message": "Context not found"}) + "\n").encode("utf-8"))
     except KeyError:
-        conn.send(json.dumps({"result": "ko", "message": "Malformed command"}).encode("utf-8"))
+        conn.send((json.dumps({"result": "ko", "message": "Malformed command"}) + "\n").encode("utf-8"))
 
     return result
 
