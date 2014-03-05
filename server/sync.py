@@ -106,6 +106,20 @@ def fs_start(conf, process):
 
     logger.info("About to execute " + section["name"])
 
+    if "pre_command" in cfg[section["name"]]:
+        if not cfg[section["name"]]["pre_command"] == "":
+            execmd ={
+                "context": "system",
+                "command": {
+                    "name": "exec",
+                    "value": cfg[section["name"]]["pre_command"]
+                }
+            }
+            conn = fs_get_conn(cfg, section["name"])
+            conn.connect((cfg.get(section["name"], "host"), cfg.getint(section["name"], "port")))
+            conn.send(json.dumps(execmd).encode("utf-8"))
+            conn.close()
+
     with storage.Database(cfg) as dbs:
         storage.db_del_dataset(dbs, section)
     logger.debug(section["name"] + ": Database cleaned")
@@ -115,5 +129,19 @@ def fs_start(conf, process):
 
     fs_get_metadata(cfg, section)
     fs_get_data(cfg, section)
+
+    if "post_command" in cfg[section["name"]]:
+        if not cfg[section["name"]]["post_command"] == "":
+            execmd ={
+                "context": "system",
+                "command": {
+                    "name": "exec",
+                    "value": cfg[section["name"]]["post_command"]
+                }
+            }
+            conn = fs_get_conn(cfg, section["name"])
+            conn.connect((cfg.get(section["name"], "host"), cfg.getint(section["name"], "port")))
+            conn.send(json.dumps(execmd).encode("utf-8"))
+            conn.close()
 
     logger.debug(section["name"] + ": Sync done")
