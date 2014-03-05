@@ -74,7 +74,7 @@ def go(sysargs):
         sys.exit(1)
     else:
         cfg = configparser.ConfigParser()
-        cfg.read_file(open(args.cfg, "r"))
+        cfg.read(args.cfg)
 
     if not args.grace:
         print("Backup mode not defined")
