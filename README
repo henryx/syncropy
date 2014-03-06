@@ -1,7 +1,7 @@
 Syncropy backup system
 ----------------------
 
-Link: http://code.google.com/p/syncropy
+Link: https://bitbucket.org/ebianchi/syncropy
 
 Description:
 ------------
@@ -17,7 +17,7 @@ Syncropy is released under GPLv2 (see GPL.txt for details)
 Features:
 ---------
 
-It use SSH for check and download data.
+It use an agent for check and download data.
 It manage four distinct datasets (hour, day, week, month).
 It save space with hard link creation.
 It save data attribute (owner, group, permission, ACL) into database.
@@ -25,62 +25,88 @@ It save data attribute (owner, group, permission, ACL) into database.
 Dependencies:
 -------------
 
- - Python 2.7 or more;
- - Paramiko;
+ - Python 3 or more;
+ - Firebird (fdb driver is used);
 
 Installation:
 -------------
 
-Just extract code into a directory and use it
+ - Create database on Firebird;
+ - Extract code into a directory;
+ - From client directory, copy the client to destination server;
+ - Execute client;
+ - Execute server.
 
 Usage:
 ------
 
 Usage is simpliest:
 
-$ python syncropy.py --cfg=<cfgfile> -H # hour backup
-$ python syncropy.py --cfg=<cfgfile> -D # day backup
-$ python syncropy.py --cfg=<cfgfile> -W # week backup
-$ python syncropy.py --cfg=<cfgfile> -M # month backup
+On client:
 
-Where <cfgfile> is a file structured like the syncropy.cfg reported in the
+$ python3 sclient.py -p <portnumber>
+
+Where <portnumber> is the TCP port number where client listen.
+For other options, use -h switch.
+
+On server:
+
+$ python sserver.py --cfg=<cfgfile> -H # hour backup
+$ python sserver.py --cfg=<cfgfile> -D # day backup
+$ python sserver.py --cfg=<cfgfile> -W # week backup
+$ python sserver.py --cfg=<cfgfile> -M # month backup
+
+Where <cfgfile> is a file structured like the backup.cfg reported in the
 archive. For other options, use -h switch. Some notes:
 
  - It is possible to have multiple configuration files, where each file has
    different parameters.
- - While database and general sections are global, it is possible to set any number
-   of sections, one per server.
+ 
+ - While database, dataset and and general sections are global, it is possible
+   to set any number of sections, one per client.
 
 This is an example of configuration file:
 
 [general]
-repository = /var/backups/servers
-
-log_file = logfile.log
+repository = /full/path/to/store/backups
+log_file = syncropy-ng.log
 log_level = INFO
 
-hour_grace = 24
-day_grace = 6
-week_grace = 4
-month_grace = 12
+[database]
+host = localhost
+port = 3050
+user = sysdba
+password = masterkey
+dbname = syncropy.fdb
 
-[server1]
-type = ssh
-remote_user = root
-remote_password = secret
-remote_host = 192.168.1.100
-remote_port = 22
-path = /home
-store_acl = yes
+[dataset]
+hour = 24
+day = 6
+week = 4
+month = 12
 
-[server2]
-type = ssh
-remote_user = foo
-remote_password = bar
-remote_host = 192.168.1.101
-remote_port = 49152
-path = /home/foo
-store_acl = no
+[a_server]
+type = file
+host = localhost
+port = 4444
+ssl = yes
+sslcert = ssl.crt
+sslkey = ssl.key
+path = /full/path/to/backup
+acl = yes
+pre_command =
+post_command =
+
+SSL:
+---
+
+If you want use the SSL connection, you need:
+
+ - Create SSL certificate with this command:
+    openssl x509 -req -days 365 -in syncropy.csr -signkey syncropy.key -out syncropy.crt
+  - Launch client with -S, --sslkey and --sslcert options (see -h switch
+    for more information)
+  - Configure server for use SSL with the same certificate.
 
 Caveats:
 --------
