@@ -78,7 +78,7 @@ class Sync(Common):
 
         dataset = storage.db_get_last_dataset(self._cfg, self._grace)
 
-        if (dataset + 1) > self._cfg.getint("dataset", self._grace):
+        if (dataset + 1) > int(self._cfg["dataset"][self._grace]):
             dataset = 1
         else:
             dataset = dataset + 1
@@ -88,7 +88,7 @@ class Sync(Common):
 
         with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
             for section in sections:
-                if self._cfg.get(section, "type") == "file":
+                if self._cfg[section]["type"] == "file":
                     section = {
                         "name": section,
                         "grace": self._grace,

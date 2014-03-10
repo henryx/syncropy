@@ -36,14 +36,14 @@ import storage
 
 def fs_get_conn(cfg, section):
     logger = logging.getLogger("Syncropy")
-    if cfg.getboolean(section, "ssl"):
+    if cfg[section].getboolean("ssl"):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.load_cert_chain(
-            certfile=cfg.get(section, "sslcert"),
-            keyfile=cfg.get(section, "sslkey"),
-            password=cfg.get(section, "sslpass")
+            certfile=cfg[section]["sslcert"],
+            keyfile=cfg[section]["sslkey"],
+            password=cfg[section]["sslpass"]
         )
 
         conn = context.wrap_socket(sock)
@@ -59,14 +59,14 @@ def fs_get_metadata(cfg, section):
         "context": "file",
         "command": {
             "name": "list",
-            "directory": cfg.get(section["name"], "path").split(","),
-            "acl": cfg.getboolean(section["name"], "acl")
+            "directory": cfg[section["name"]]["path"].split(","),
+            "acl": cfg[section["name"]].getboolean("acl")
         }
     }
 
     conn = fs_get_conn(cfg, section["name"])
 
-    conn.connect((cfg.get(section["name"], "host"), cfg.getint(section["name"], "port")))
+    conn.connect((cfg[section["name"]]["host"], int(cfg[section["name"]]["port"])))
     logger.debug(section["name"] + ": Socket connected")
     conn.send(json.dumps(cmdlist).encode("utf-8"))
     logger.debug(section["name"] + ": JSON command list sended")
@@ -84,7 +84,7 @@ def fs_get_metadata(cfg, section):
 
 def fs_get_data(cfg, section):
     if (section["dataset"] - 1) == 0:
-        previous = cfg.getint("dataset", section["grace"])
+        previous = int(cfg["dataset"][section["grace"]])
     else:
         previous = section["dataset"] - 1
 

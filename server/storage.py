@@ -24,11 +24,11 @@ class Database():
         return self._conn
 
     def __init__(self, cfg):
-        self._conn = fdb.connect(host=cfg.get("database", "host"),
-                                 port=cfg.get("database", "port"),
-                                 database=cfg.get("database", "dbname"),
-                                 user=cfg.get("database", "user"),
-                                 password=cfg.get("database", "password"),
+        self._conn = fdb.connect(host=cfg["database"]["host"],
+                                 port=cfg["database"]["port"],
+                                 database=cfg["database"]["dbname"],
+                                 user=cfg["database"]["user"],
+                                 password=cfg["database"]["password"],
                                  charset="UTF8")
 
         if not self._check_schema():
@@ -161,13 +161,13 @@ def fs_remove_dataset(cfg, section, previous=False):
 def fs_compute_destination(cfg, section, previous):
     if previous:
         if section["dataset"] == 1:
-            dataset = cfg.getint("dataset", section["grace"])
+            dataset = int(cfg["dataset"][section["grace"]])
         else:
             dataset = section["dataset"] - 1
     else:
         dataset = section["dataset"]
 
-    destination = os.sep.join([cfg.get("general", "repository"),
+    destination = os.sep.join([cfg["general"]["repository"],
                                section["grace"],
                                str(dataset),
                                section["name"]])
