@@ -24,6 +24,7 @@ def init_args():
     args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
     args.add_argument("-S", "--ssl", action='store_const', const="ssl", help="Enable SSL support")
     args.add_argument("--sslkey", metavar="<keyfile>", help="Private key for SSL connection")
+    args.add_argument("--sslpem", metavar="<pemfile>", help="PEM file for SSL connection")
     args.add_argument("--sslcert", metavar="<certificate>", help="Certificate file for SSL connection")
     args.add_argument("--sslpass", metavar="<password>", help="Password for SSL connection")
 
@@ -121,6 +122,9 @@ def serve(port, address=None, sslparams=None):
                 context.load_cert_chain(certfile=sslparams["cert"],
                                         keyfile=sslparams["key"],
                                         password=sslparams["password"])
+
+                context.load_verify_locations(cafile=sslparams["pem"])
+                context.verify_mode = ssl.CERT_REQUIRED
                 stream = context.wrap_socket(conn, server_side=True)
 
                 data = stream.recv(4096)
@@ -165,7 +169,14 @@ if __name__ == "__main__":
             print("SSL certificate is missing")
             sys.exit(2)
 
-        sslparams = {"enabled": True, "key": args.sslkey, "cert": args.sslcert, "password": args.sslpass}
+        sslparams = {
+            "enabled": True,
+            "key": args.sslkey,
+            "cert": args.sslcert,
+            "pem": args.sslpem,
+            "password": args.sslpass
+        }
+
         serve(args.port, args.listen, sslparams)
     else:
         sslparams = {"enabled": False}
