@@ -42,8 +42,7 @@ def fs_get_conn(cfg, section):
 
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         context.load_cert_chain(
-            certfile=cfg[section]["sslcert"],
-            keyfile=cfg[section]["sslkey"],
+            certfile=cfg[section]["sslpem"],
             password=cfg[section]["sslpass"]
         )
 
