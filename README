@@ -90,8 +90,8 @@ type = file
 host = localhost
 port = 4444
 ssl = yes
-sslcert = ssl.crt
-sslkey = ssl.key
+sslpem = ssl.pem
+sslpass = password
 path = /full/path/to/backup
 acl = yes
 pre_command =
@@ -102,10 +102,15 @@ SSL:
 
 If you want use the SSL connection, you need:
 
- - Create SSL certificate with this command:
+ - Create SSL certificate with these commands:
+
+    openssl genrsa -des3 -out syncropy.key 2048
+    openssl req -new -key syncropy.key -out syncropy.csr
     openssl x509 -req -days 365 -in syncropy.csr -signkey syncropy.key -out syncropy.crt
-  - Launch client with -S, --sslkey and --sslcert options (see -h switch
-    for more information)
+    cat syncropy.key syncropy.crt > syncropy.pem
+    openssl gendh >> syncropy.pem
+
+  - Launch client with -S, --sslpem and --sslpass options (see -h switch for more information).
   - Configure server for use SSL with the same certificate.
 
 Caveats:
