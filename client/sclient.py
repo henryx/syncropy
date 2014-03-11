@@ -23,9 +23,7 @@ def init_args():
     args.add_argument("-p", "--port", metavar="<port>", help="Port which listen")
     args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
     args.add_argument("-S", "--ssl", action='store_const', const="ssl", help="Enable SSL support")
-    args.add_argument("--sslkey", metavar="<keyfile>", help="Private key for SSL connection")
     args.add_argument("--sslpem", metavar="<pemfile>", help="PEM file for SSL connection")
-    args.add_argument("--sslcert", metavar="<certificate>", help="Certificate file for SSL connection")
     args.add_argument("--sslpass", metavar="<password>", help="Password for SSL connection")
 
     return args
@@ -119,8 +117,7 @@ def serve(port, address=None, sslparams=None):
         try:
             if sslparams["enabled"]:
                 context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-                context.load_cert_chain(certfile=sslparams["cert"],
-                                        keyfile=sslparams["key"],
+                context.load_cert_chain(certfile=sslparams["pem"],
                                         password=sslparams["password"])
 
                 context.load_verify_locations(cafile=sslparams["pem"])
@@ -161,18 +158,12 @@ if __name__ == "__main__":
         sys.exit(1)
 
     if args.ssl:
-        if args.sslkey is None:
-            print("SSL keyfile is missing")
-            sys.exit(2)
-
-        if args.sslcert is None:
-            print("SSL certificate is missing")
+        if args.sslpem is None:
+            print("SSL PEM file is missing")
             sys.exit(2)
 
         sslparams = {
             "enabled": True,
-            "key": args.sslkey,
-            "cert": args.sslcert,
             "pem": args.sslpem,
             "password": args.sslpass
         }
