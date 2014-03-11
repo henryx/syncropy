@@ -122,8 +122,11 @@ def fs_start(conf, process):
     storage.fs_remove_dataset(cfg, section)
     logger.debug(section["name"] + ": Dataset tree section removed")
 
-    fs_get_metadata(cfg, section)
-    fs_get_data(cfg, section)
+    try:
+        fs_get_metadata(cfg, section)
+        fs_get_data(cfg, section)
+    except Exception as err:
+        logger.error("Sync for {0} failed: {1}".format(section["name"], err))
 
     if "post_command" in cfg[section["name"]]:
         if not cfg[section["name"]]["post_command"] == "":
