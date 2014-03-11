@@ -285,6 +285,9 @@ class List(object):
                     result["result"] = "ok"
 
                     yield json.dumps(result)
+                result = self._compute_metadata(root)
+                result["result"] = "ok"
+                yield json.dumps(result)
 
 class Send(object):
     _filename = None
