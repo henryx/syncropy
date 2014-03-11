@@ -100,8 +100,22 @@ def parse(command, conn):
     return result
 
 def serve(port, address=None, sslparams=None):
-    s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    if sslparams["enabled"]:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        if sslparams["enabled"]:
+            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+            context.load_cert_chain(certfile=sslparams["pem"],
+                                    password=sslparams["password"])
+
+            context.load_verify_locations(cafile=sslparams["pem"])
+            context.verify_mode = ssl.CERT_REQUIRED
+            s = context.wrap_socket(sock, server_side=True)
+    else:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     if address:
         s.bind((address, int(port)))
@@ -115,21 +129,8 @@ def serve(port, address=None, sslparams=None):
         conn, addr = s.accept()
 
         try:
-            if sslparams["enabled"]:
-                context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-                context.load_cert_chain(certfile=sslparams["pem"],
-                                        password=sslparams["password"])
-
-                context.load_verify_locations(cafile=sslparams["pem"])
-                context.verify_mode = ssl.CERT_REQUIRED
-                stream = context.wrap_socket(conn, server_side=True)
-
-                data = stream.recv(4096)
-                execute = parse(data, stream)
-            else:
-                data = conn.recv(4096)
-                execute = parse(data, conn)
-
+            data = conn.recv(4096)
+            execute = parse(data, conn)
         except UnicodeDecodeError:
             pass
         except ssl.SSLError as err:
@@ -138,8 +139,7 @@ def serve(port, address=None, sslparams=None):
             print("Operating system error({0})".format(err))
         finally:
             try:
-                stream.shutdown(socket.SHUT_RDWR)
-                stream.close()
+                conn.shutdown(socket.SHUT_RDWR)
             except:
                 pass
             conn.close()
