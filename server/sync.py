@@ -76,7 +76,10 @@ def fs_get_metadata(cfg, section):
             response = json.loads(data)
             storage.db_save_attrs(dbs, section, response)
             if response["attrs"]["type"] == "directory":
-                storage.fs_create_dir(cfg, section, response["name"])
+                try:
+                    storage.fs_create_dir(cfg, section, response["name"])
+                except FileExistsError:
+                    pass
 
         logger.debug(section["name"] + ": JSON list readed")
 
