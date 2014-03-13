@@ -8,13 +8,15 @@ License       GPL version 2 (see GPL.txt for details)
 
 __author__ = "enrico"
 
-import grp
 import hashlib
 import json
 import os
-import pwd
 import stat
 import subprocess
+
+if os.name == "posix":
+    import grp
+    import pwd
 
 class FileMode(object):
     SUID = 0
