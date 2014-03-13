@@ -177,8 +177,32 @@ class List(object):
         return result
 
     def _compute_nt_attrs(self, path):
-        result = {}
-        # TODO: write code for getting data from Windows systems
+        result = {
+            "type": None,
+            "link": None,
+            "size": None,
+            "hash": None,
+            "atime": None,
+            "mtime": None,
+            "ctime": None,
+            "user": None,
+            "group": None
+        }
+
+        if os.path.isdir(path):
+            result["type"] = "directory"
+        elif os.path.islink(path):
+            result["type"] = "symlink"
+            result["link"] = os.readlink(path)
+        else:
+            result["type"] = "file"
+            result["size"] = os.path.getsize(path)
+            result["hash"] = self._hash(path)
+
+        result["atime"] = int(os.path.getatime(path))
+        result["mtime"] = int(os.path.getmtime(path))
+        result["ctime"] = int(os.path.getctime(path))
+
         return result
 
     def _compute_posix_attrs(self, path):
