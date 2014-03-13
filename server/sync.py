@@ -100,6 +100,18 @@ def fs_get_data(cfg, section):
                     storage.fs_save_file(cfg, section, item[0], conn)
 
 def fs_start(conf, process):
+    def exec_remote_cmd(command):
+        if not command == "":
+            execmd ={
+                "context": "system",
+                "command": {
+                    "name": "exec",
+                    "value": command
+                }
+            }
+            with closing(fs_get_conn(cfg, section["name"])) as conn:
+                conn.send(json.dumps(execmd).encode("utf-8"))
+
     cfg = pickle.loads(conf)
     section = pickle.loads(process)
     logger = logging.getLogger("Syncropy")
@@ -107,16 +119,7 @@ def fs_start(conf, process):
     logger.info("About to execute " + section["name"])
 
     if "pre_command" in cfg[section["name"]]:
-        if not cfg[section["name"]]["pre_command"] == "":
-            execmd ={
-                "context": "system",
-                "command": {
-                    "name": "exec",
-                    "value": cfg[section["name"]]["pre_command"]
-                }
-            }
-            with closing(fs_get_conn(cfg, section["name"])) as conn:
-                conn.send(json.dumps(execmd).encode("utf-8"))
+        exec_remote_cmd(cfg[section["name"]]["pre_command"])
 
     with storage.Database(cfg) as dbs:
         storage.db_del_dataset(dbs, section)
@@ -132,15 +135,6 @@ def fs_start(conf, process):
         logger.error("Sync for {0} failed: {1}".format(section["name"], err))
 
     if "post_command" in cfg[section["name"]]:
-        if not cfg[section["name"]]["post_command"] == "":
-            execmd ={
-                "context": "system",
-                "command": {
-                    "name": "exec",
-                    "value": cfg[section["name"]]["post_command"]
-                }
-            }
-            with closing(fs_get_conn(cfg, section["name"])) as conn:
-                conn.send(json.dumps(execmd).encode("utf-8"))
+        exec_remote_cmd(cfg[section["name"]]["post_command"])
 
     logger.debug(section["name"] + ": Sync done")
