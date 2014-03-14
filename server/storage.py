@@ -197,9 +197,20 @@ def db_del_dataset(dbm, section):
 def db_save_attrs(dbm, section, data):
     # TODO: Add code for managing Windows systems
 
-    def save_posix_attrs():
-        attrs = data["attrs"]
+    def save_posix_acl(cursor, acls):
+        for user in acls["user"]:
+            cursor.execute(" ".join(["INSERT INTO acls",
+                    "(area, grace, dataset, element, name, type, perms)",
+                    "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
+                           [section["name"], section["grace"], section["dataset"], data["name"], user["uid"], "group", user["attrs"]])
+        for group in acls["group"]:
+            cursor.execute(" ".join(["INSERT INTO acls",
+                    "(area, grace, dataset, element, name, type, perms)",
+                    "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
+                           [section["name"], section["grace"], section["dataset"], data["name"], group["gid"], "group", group["attrs"]])
 
+    with closing(dbm.connection.cursor()) as cursor:
+        attrs = data["attrs"]
         cursor.execute(" ".join(["INSERT INTO attrs",
                     "(area, grace, dataset, element, os, username, groupname, type,",
                     "link, mtime, ctime, hash, perms, compressed)",
@@ -209,22 +220,8 @@ def db_save_attrs(dbm, section, data):
                         attrs["hash"], attrs["mode"], section["compressed"]])
 
         if "acl" in data:
-            acls = data["acl"]
-
-            for user in acls["user"]:
-                cursor.execute(" ".join(["INSERT INTO acls",
-                        "(area, grace, dataset, element, name, type, perms)",
-                        "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
-                               [section["name"], section["grace"], section["dataset"], data["name"], user["uid"], "group", user["attrs"]])
-            for group in acls["group"]:
-                cursor.execute(" ".join(["INSERT INTO acls",
-                        "(area, grace, dataset, element, name, type, perms)",
-                        "VALUES(?, ?, ?, ?, ?, ?, ?)"]),
-                               [section["name"], section["grace"], section["dataset"], data["name"], group["gid"], "group", group["attrs"]])
-
-    with closing(dbm.connection.cursor()) as cursor:
-        if data["os"] == "posix":
-            save_posix_attrs()
+            if data["os"] == "posix":
+                save_posix_acl(cursor, data["acl"])
 
 def db_list_items(dbm, section, itemtype):
     with closing(dbm.connection.cursor()) as cursor:
