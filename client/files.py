@@ -176,37 +176,8 @@ class List(object):
 
         return result
 
-    def _compute_nt_attrs(self, path):
-        result = {
-            "type": None,
-            "link": None,
-            "size": None,
-            "hash": None,
-            "atime": None,
-            "mtime": None,
-            "ctime": None,
-            "user": None,
-            "group": None
-        }
-
-        if os.path.isdir(path):
-            result["type"] = "directory"
-        elif os.path.islink(path):
-            result["type"] = "symlink"
-            result["link"] = os.readlink(path)
-        else:
-            result["type"] = "file"
-            result["size"] = os.path.getsize(path)
-            result["hash"] = self._hash(path)
-
-        result["atime"] = int(os.path.getatime(path))
-        result["mtime"] = int(os.path.getmtime(path))
-        result["ctime"] = int(os.path.getctime(path))
-
-        return result
-
-    def _compute_posix_attrs(self, path):
-        result = {
+    def _compute_metadata(self, path):
+        attrs = {
             "type": None,
             "link": None,
             "size": None,
@@ -219,42 +190,38 @@ class List(object):
             "group": None
         }
 
-        attrs = FileMode(os.stat(path).st_mode)
-
-        if os.path.isdir(path):
-            result["type"] = "directory"
-        elif os.path.islink(path):
-            result["type"] = "symlink"
-            result["link"] = os.readlink(path)
-        else:
-            result["type"] = "file"
-            result["size"] = os.path.getsize(path)
-            result["hash"] = self._hash(path)
-
-        result["atime"] = int(os.path.getatime(path))
-        result["mtime"] = int(os.path.getmtime(path))
-        result["ctime"] = int(os.path.getctime(path))
-        result["mode"] = attrs.mode_to_octal()
-        result["user"] = pwd.getpwuid(os.stat(path).st_uid).pw_name
-        result["group"] = grp.getgrgid(os.stat(path).st_gid).gr_name
-
-        return result
-
-    def _compute_metadata(self, path):
         result = {
             "name": path,
             "os": os.name
         }
 
+        if os.path.isdir(path):
+            attrs["type"] = "directory"
+        elif os.path.islink(path):
+            attrs["type"] = "symlink"
+            attrs["link"] = os.readlink(path)
+        else:
+            attrs["type"] = "file"
+            attrs["size"] = os.path.getsize(path)
+            attrs["hash"] = self._hash(path)
+
+        attrs["atime"] = int(os.path.getatime(path))
+        attrs["mtime"] = int(os.path.getmtime(path))
+        attrs["ctime"] = int(os.path.getctime(path))
+
         if os.name == "nt":
-            result["attrs"] = self._compute_nt_attrs(path)
             if self.acl:
                 result["acl"] = self._compute_nt_acl(path)
         else:
-            result["attrs"] = self._compute_posix_attrs(path)
+            mode = FileMode(os.stat(path).st_mode)
+            attrs["mode"] = mode.mode_to_octal()
+            attrs["user"] = pwd.getpwuid(os.stat(path).st_uid).pw_name
+            attrs["group"] = grp.getgrgid(os.stat(path).st_gid).gr_name
+
             if self.acl:
                 result["acl"] = self._compute_posix_acl(path)
 
+        result["attrs"] = attrs
         return result
 
     def _hash(self, path, block_size=2**20):
