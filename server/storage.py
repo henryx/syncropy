@@ -248,10 +248,10 @@ def db_item_exist(dbm, section, item, previous=None):
         dataset = section["dataset"]
 
     with closing(dbm.connection.cursor()) as cursor:
-        cursor.execute(" ".join(["SELECT count(*) FROM attrs",
+        cursor.execute(" ".join(["SELECT count(element) FROM attrs",
                                  "WHERE element = ? AND hash = ?",
                                  " AND area = ? AND grace = ? AND dataset = ?"]),
-                       [item[0], item[2], section["name"], section["grace"], dataset])
+                       [item["name"], item["attrs"]["hash"], section["name"], section["grace"], dataset])
 
         items = cursor.fetchone()
 
