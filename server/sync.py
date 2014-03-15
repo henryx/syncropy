@@ -98,6 +98,9 @@ def fs_get_data(cfg, section):
                 with closing(fs_get_conn(cfg, section["name"])) as conn:
                     storage.fs_save(cfg, section, item, conn=conn)
 
+        for item in storage.db_list_items(dbs, section, "symlink"):
+                storage.fs_save(cfg, section, item)
+
 def fs_start(conf, process):
     def exec_remote_cmd(command):
         if not command == "":
