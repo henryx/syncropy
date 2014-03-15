@@ -127,37 +127,6 @@ class Database():
 
         cursor.close()
 
-def fs_create_dir(cfg, section, dirname):
-    path = os.sep.join([fs_compute_destination(cfg, section, False), dirname])
-    os.makedirs(path)
-
-def fs_save_file(cfg, section,filename, conn):
-    logger = logging.getLogger("Syncropy")
-
-    cmdget = {
-        "context": "file",
-        "command": {
-            "name": "get",
-            "filename": filename
-        }
-    }
-
-    path = os.sep.join([fs_compute_destination(cfg, section, False), filename])
-    conn.send(json.dumps(cmdget).encode("utf-8"))
-
-    logger.debug(section["name"] + ": Transfer file " + filename)
-    with open(path, "wb") as destfile:
-        while True:
-            data = conn.recv(2048)
-            if not data:
-                break
-            destfile.write(data)
-
-def fs_remove_dataset(cfg, section, previous=False):
-    dataset = fs_compute_destination(cfg, section, previous)
-    if os.path.exists(dataset):
-        shutil.rmtree(dataset)
-
 def fs_compute_destination(cfg, section, previous):
     if previous:
         if section["dataset"] == 1:
@@ -172,6 +141,47 @@ def fs_compute_destination(cfg, section, previous):
                                str(dataset),
                                section["name"]])
     return destination
+
+def fs_save(cfg, section, data, previous=False, conn=None):
+    logger = logging.getLogger("Syncropy")
+
+    if data["os"] == "nt":
+        item = data["name"].replace("\\", "/").replace(":", "")
+    else:
+        item = data["name"]
+
+    path = os.sep.join([fs_compute_destination(cfg, section, False), item])
+
+    if data["attrs"]["type"] == "directory":
+        os.makedirs(path)
+    elif data["attrs"]["type"] == "link":
+        os.symlink(data["link"], path)
+    elif data["attrs"]["type"] == "file":
+        if previous:
+            os.link(os.sep.join([fs_compute_destination(cfg, section, True), data["name"]]),
+                        os.sep.join([fs_compute_destination(cfg, section, False), data["name"]]))
+        else:
+            cmdget = {
+                "context": "file",
+                "command": {
+                    "name": "get",
+                    "filename": data["name"]
+                }
+            }
+            conn.send(json.dumps(cmdget).encode("utf-8"))
+            logger.debug(section["name"] + ": Transfer file " + data["name"])
+
+            with open(path, "wb") as destfile:
+                while True:
+                    data = conn.recv(2048)
+                    if not data:
+                        break
+                    destfile.write(data)
+
+def fs_remove_dataset(cfg, section, previous=False):
+    dataset = fs_compute_destination(cfg, section, previous)
+    if os.path.exists(dataset):
+        shutil.rmtree(dataset)
 
 def db_get_last_dataset(cfg, grace):
 

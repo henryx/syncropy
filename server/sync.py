@@ -77,7 +77,7 @@ def fs_get_metadata(cfg, section):
             storage.db_save_attrs(dbs, section, response)
             if response["attrs"]["type"] == "directory":
                 try:
-                    storage.fs_create_dir(cfg, section, response["name"])
+                    storage.fs_save(cfg, section, response)
                 except FileExistsError:
                     pass
 
@@ -93,11 +93,10 @@ def fs_get_data(cfg, section):
     with storage.Database(cfg) as dbs:
         for item in storage.db_list_items(dbs, section, "file"):
             if storage.db_item_exist(dbs, section, item, previous):
-                os.link(os.sep.join([storage.fs_compute_destination(cfg, section, True), item["name"]]),
-                        os.sep.join([storage.fs_compute_destination(cfg, section, False), item["name"]]))
+                storage.fs_save(cfg, section, item, previous=True)
             else:
                 with closing(fs_get_conn(cfg, section["name"])) as conn:
-                    storage.fs_save_file(cfg, section, item["name"], conn)
+                    storage.fs_save(cfg, section, item, conn=conn)
 
 def fs_start(conf, process):
     def exec_remote_cmd(command):
