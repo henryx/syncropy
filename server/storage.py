@@ -225,12 +225,21 @@ def db_save_attrs(dbm, section, data):
 
 def db_list_items(dbm, section, itemtype):
     with closing(dbm.connection.cursor()) as cursor:
-        cursor.execute(" ".join(["SELECT element, os, hash, link, mtime,",
-            "ctime FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"]),
+        cursor.execute(" ".join(["SELECT element, os, hash, type, link",
+                                 "FROM attrs WHERE type = ? AND area = ? AND grace = ? AND dataset = ?"]),
             [itemtype, section["name"], section["grace"], section["dataset"]])
 
         for item in cursor.fetchall():
-            yield item
+            result = {
+                "name": item[0],
+                "os": item[1],
+                "attrs": {
+                    "hash": item[2],
+                    "type": item[3],
+                    "link": item[4]
+                }
+            }
+            yield result
 
 def db_item_exist(dbm, section, item, previous=None):
     if previous:
