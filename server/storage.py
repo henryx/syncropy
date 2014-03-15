@@ -154,8 +154,8 @@ def fs_save(cfg, section, data, previous=False, conn=None):
 
     if data["attrs"]["type"] == "directory":
         os.makedirs(path)
-    elif data["attrs"]["type"] == "link":
-        os.symlink(data["link"], path)
+    elif data["attrs"]["type"] == "symlink":
+        os.symlink(data["attrs"]["link"], path)
     elif data["attrs"]["type"] == "file":
         if previous:
             os.link(os.sep.join([fs_compute_destination(cfg, section, True), data["name"]]),
