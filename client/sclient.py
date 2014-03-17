@@ -20,7 +20,7 @@ import sys
 
 def init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
-    args.add_argument("-p", "--port", metavar="<port>", help="Port which listen")
+    args.add_argument("-p", "--port", required=True, metavar="<port>", help="Port which listen")
     args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
     args.add_argument("-S", "--ssl", action='store_const', const="ssl", help="Enable SSL support")
     args.add_argument("--sslpem", metavar="<pemfile>", help="PEM file for SSL connection")
@@ -152,10 +152,6 @@ if __name__ == "__main__":
     #pycallgraph.start_trace()
 
     args = init_args().parse_args(sys.argv[1:])
-
-    if not args.port:
-        print("Port not defined")
-        sys.exit(1)
 
     if args.ssl:
         if args.sslpem is None:
