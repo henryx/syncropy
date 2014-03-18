@@ -88,12 +88,12 @@ class Sync(Common):
 
         with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
             for section in sections:
-                if self._cfg[section]["type"] == "file":
+                if self._cfg[section]["type"] == "file": # FIXME: useless?
                     section = {
                         "name": section,
                         "grace": self._grace,
                         "dataset": dataset,
-                        "compressed": False  # TODO: get parameter from configuration file (for future implementation)
+                        "compressed": self._cfg[section].getboolean("compress")
                     }
 
                     pool.submit(sync.fs_start, pickle.dumps(self._cfg), pickle.dumps(section))

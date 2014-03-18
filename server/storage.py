@@ -10,6 +10,7 @@ __author__ = "enrico"
 
 import json
 import logging
+import lzma
 import os
 import shutil
 from contextlib import closing
@@ -158,8 +159,14 @@ def fs_save(cfg, section, data, previous=False, conn=None):
         os.symlink(data["attrs"]["link"], path)
     elif data["attrs"]["type"] == "file":
         if previous:
-            os.link(os.sep.join([fs_compute_destination(cfg, section, True), data["name"]]),
-                        os.sep.join([fs_compute_destination(cfg, section, False), data["name"]]))
+            if section["compressed"]:
+                source = os.sep.join([fs_compute_destination(cfg, section, True), data["name"]]) + ".compressed"
+                dest = os.sep.join([fs_compute_destination(cfg, section, False), data["name"]]) + ".compressed"
+            else:
+                source = os.sep.join([fs_compute_destination(cfg, section, True), data["name"]])
+                dest = os.sep.join([fs_compute_destination(cfg, section, False), data["name"]])
+
+            os.link(source, dest)
         else:
             cmdget = {
                 "context": "file",
@@ -177,6 +184,15 @@ def fs_save(cfg, section, data, previous=False, conn=None):
                     if not data:
                         break
                     destfile.write(data)
+
+            if section["compressed"]:
+                fs_compress_file(path)
+
+def fs_compress_file(path):
+    with lzma.open(path + ".compressed", "w") as lzma_file, open(path, 'rb') as file_name:
+        for line in file_name:
+            lzma_file.write(line)
+    os.remove(path)
 
 def fs_remove_dataset(cfg, section, previous=False):
     dataset = fs_compute_destination(cfg, section, previous)
