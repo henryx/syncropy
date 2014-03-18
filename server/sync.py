@@ -5,6 +5,7 @@ Project       Syncropy-ng
 Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
 """
+import sys
 
 """
 NOTE:
@@ -121,7 +122,11 @@ def fs_start(conf, process):
     logger.info("About to execute " + section["name"])
 
     if "pre_command" in cfg[section["name"]]:
-        exec_remote_cmd(cfg[section["name"]]["pre_command"])
+        try:
+            exec_remote_cmd(cfg[section["name"]]["pre_command"])
+        except Exception as err:
+            logger.error("Pre command for {0} failed: {1}".format(section["name"], err))
+            sys.exit(3)
 
     with storage.Database(cfg) as dbs:
         storage.db_del_dataset(dbs, section)
@@ -137,6 +142,10 @@ def fs_start(conf, process):
         logger.error("Sync for {0} failed: {1}".format(section["name"], err))
 
     if "post_command" in cfg[section["name"]]:
-        exec_remote_cmd(cfg[section["name"]]["post_command"])
+        try:
+            exec_remote_cmd(cfg[section["name"]]["post_command"])
+        except Exception as err:
+            logger.error("Post command for {0} failed: {1}".format(section["name"], err))
+            sys.exit(3)
 
     logger.debug(section["name"] + ": Sync done")
