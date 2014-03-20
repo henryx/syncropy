@@ -66,8 +66,8 @@ def parse(command, conn):
         conn.send((json.dumps({"result": "ko", "message": "Malformed command"}) + "\n").encode("utf-8"))
         return True
 
+    result = True
     try:
-        result = True
         if cmd["context"] == "file":
             if cmd["command"]["name"] == "list":
                 try:
@@ -105,14 +105,13 @@ def serve(port, address=None, sslparams=None):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        if sslparams["enabled"]:
-            context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-            context.load_cert_chain(certfile=sslparams["pem"],
-                                    password=sslparams["password"])
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.load_cert_chain(certfile=sslparams["pem"],
+                                password=sslparams["password"])
 
-            context.load_verify_locations(cafile=sslparams["pem"])
-            context.verify_mode = ssl.CERT_REQUIRED
-            s = context.wrap_socket(sock, server_side=True)
+        context.load_verify_locations(cafile=sslparams["pem"])
+        context.verify_mode = ssl.CERT_REQUIRED
+        s = context.wrap_socket(sock, server_side=True)
     else:
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
