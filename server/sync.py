@@ -28,7 +28,6 @@ __author__ = "enrico"
 
 import json
 import logging
-import os
 import pickle
 import socket
 import ssl
@@ -126,6 +125,7 @@ def fs_start(conf, process):
             exec_remote_cmd(cfg[section["name"]]["pre_command"])
         except Exception as err:
             logger.error("Pre command for {0} failed: {1}".format(section["name"], err))
+            logger.exception("Exception Traceback")
             sys.exit(3)
 
     with storage.Database(cfg) as dbs:
@@ -140,12 +140,14 @@ def fs_start(conf, process):
         fs_get_data(cfg, section)
     except Exception as err:
         logger.error("Sync for {0} failed: {1}".format(section["name"], err))
+        logger.exception("Exception Traceback")
 
     if "post_command" in cfg[section["name"]]:
         try:
             exec_remote_cmd(cfg[section["name"]]["post_command"])
         except Exception as err:
             logger.error("Post command for {0} failed: {1}".format(section["name"], err))
+            logger.exception("Exception Traceback")
             sys.exit(3)
 
     logger.debug(section["name"] + ": Sync done")
