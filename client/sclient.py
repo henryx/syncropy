@@ -13,6 +13,7 @@ __author__ = "enrico"
 import argparse
 import files
 import json
+import logging
 import socket
 import ssl
 import subprocess
@@ -95,6 +96,7 @@ def parse(command, conn):
         else:
             conn.send((json.dumps({"result": "ko", "message": "Context not found"}) + "\n").encode("utf-8"))
     except KeyError:
+        logging.exception("KeyError Traceback and data: " + command.decode('utf-8'))
         conn.send((json.dumps({"result": "ko", "message": "Malformed command"}) + "\n").encode("utf-8"))
 
     return result
