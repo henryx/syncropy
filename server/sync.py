@@ -75,14 +75,8 @@ def fs_get_metadata(cfg, section):
         for data in f:
             response = json.loads(data)
             storage.db_save_attrs(dbs, section, response)
-            if response["attrs"]["type"] == "directory":
-                try:
-                    storage.fs_save(cfg, section, response)
-                except FileExistsError:
-                    pass
 
         logger.debug(section["name"] + ": JSON list readed")
-
 
 def fs_get_data(cfg, section):
     if (section["dataset"] - 1) == 0:
@@ -91,6 +85,11 @@ def fs_get_data(cfg, section):
         previous = section["dataset"] - 1
 
     with storage.Database(cfg) as dbs:
+        for item in storage.db_list_items(dbs, section, "directory"):
+            try:
+                storage.fs_save(cfg, section, item)
+            except FileExistsError:
+                pass
         for item in storage.db_list_items(dbs, section, "file"):
             if storage.db_item_exist(dbs, section, item, previous):
                 storage.fs_save(cfg, section, item, previous=True)
