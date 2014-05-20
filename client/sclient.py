@@ -29,7 +29,7 @@ def init_args():
 
     return args
 
-def exec_command(cmd, conn):
+def exec_command(cmd):
     message = {}
     string = ""
 
@@ -56,9 +56,9 @@ def exec_command(cmd, conn):
             message["result"] = "ok"
             message["message"] = "Command successful"
 
-        conn.send((json.dumps(message) + "\n").encode("utf-8"))
+        return (json.dumps(message) + "\n").encode("utf-8")
     except subprocess.CalledProcessError as e:
-        conn.send((json.dumps({"result": "ko", "error": str(e)}) + "\n").encode("utf-8"))
+        return (json.dumps({"result": "ko", "error": str(e)}) + "\n").encode("utf-8")
 
 def parse(command, conn):
     try:
@@ -90,7 +90,7 @@ def parse(command, conn):
                 conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
-                exec_command(cmd["command"]["value"], conn)
+                conn.send(exec_command(cmd["command"]["value"]))
             elif cmd["command"]["name"] == "exit":
                 result = False
         else:
