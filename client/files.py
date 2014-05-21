@@ -215,8 +215,17 @@ class List(object):
         else:
             mode = FileMode(os.stat(path).st_mode)
             attrs["mode"] = mode.mode_to_octal()
-            attrs["user"] = pwd.getpwuid(os.stat(path).st_uid).pw_name
-            attrs["group"] = grp.getgrgid(os.stat(path).st_gid).gr_name
+
+            # If user or group aren't recognized, UID or GID are saved
+            try:
+                attrs["user"] = pwd.getpwuid(os.stat(path).st_uid).pw_name
+            except KeyError:
+                attrs["user"] = os.stat(path).st_uid
+
+            try:
+                attrs["group"] = grp.getgrgid(os.stat(path).st_gid).gr_name
+            except KeyError:
+                attrs["group"] = os.stat(path).st_gid
 
             if self.acl:
                 result["acl"] = self._compute_posix_acl(path)
