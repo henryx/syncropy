@@ -35,7 +35,7 @@ from contextlib import closing
 
 import storage
 
-def fs_get_conn(cfg, section):
+def get_remote_conn(cfg, section):
     logger = logging.getLogger("Syncropy")
     if cfg[section].getboolean("ssl"):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,7 +67,7 @@ def fs_get_metadata(cfg, section):
         }
     }
 
-    with closing(fs_get_conn(cfg, section["name"])) as conn, storage.Database(cfg) as dbs:
+    with closing(get_remote_conn(cfg, section["name"])) as conn, storage.Database(cfg) as dbs:
         conn.send(json.dumps(cmdlist).encode("utf-8"))
         logger.debug(section["name"] + ": JSON command list sended")
 
@@ -94,7 +94,7 @@ def fs_get_data(cfg, section):
             if storage.db_item_exist(dbs, section, item, previous):
                 storage.fs_save(cfg, section, item, previous=True)
             else:
-                with closing(fs_get_conn(cfg, section["name"])) as conn:
+                with closing(get_remote_conn(cfg, section["name"])) as conn:
                     storage.fs_save(cfg, section, item, conn=conn)
 
         for item in storage.db_list_items(dbs, section, "symlink"):
@@ -110,7 +110,7 @@ def fs_start(conf, process):
                     "value": command
                 }
             }
-            with closing(fs_get_conn(cfg, section["name"])) as conn:
+            with closing(get_remote_conn(cfg, section["name"])) as conn:
                 conn.send(json.dumps(execmd).encode("utf-8"))
 
     cfg = pickle.loads(conf)
