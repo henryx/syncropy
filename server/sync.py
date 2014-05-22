@@ -113,6 +113,12 @@ def fs_start(conf, process):
             with closing(get_remote_conn(cfg, section["name"])) as conn:
                 conn.send(json.dumps(execmd).encode("utf-8"))
 
+                f = conn.makefile()
+                for data in f:
+                    response = json.loads(data)
+                    if response["result"] == "ko":
+                        raise Exception("Remote command error: " + response["message"])
+
     cfg = pickle.loads(conf)
     section = pickle.loads(process)
     logger = logging.getLogger("Syncropy")
