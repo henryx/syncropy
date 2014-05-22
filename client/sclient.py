@@ -41,17 +41,19 @@ def exec_command(cmd):
         sts = p.wait()
 
         if sts != 0:
+            message["result"] = "ko"
             if p.stdout != None:
-                message["result"] = "ko"
+                message["type"] = "stdout"
                 for item in p.stdout.readlines():
                     string  = "\n".join([string, item.decode("utf-8")])
 
-                message["stdout"] = string
+                message["message"] = string
             if p.stderr != None:
+                message["type"] = "stderr"
                 for item in p.stderr.readlines():
                     string  = "\n".join([string, item.decode("utf-8")])
 
-                message["stderr"] = string
+                message["message"] = string
         else:
             message["result"] = "ok"
             message["message"] = "Command successful"
