@@ -29,6 +29,29 @@ def init_args():
 
     return args
 
+def get_socket(port, address=None, sslparams=None):
+    if sslparams["enabled"]:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
+        context.load_cert_chain(certfile=sslparams["pem"],
+                                password=sslparams["password"])
+
+        context.load_verify_locations(cafile=sslparams["pem"])
+        context.verify_mode = ssl.CERT_REQUIRED
+        s = context.wrap_socket(sock, server_side=True)
+    else:
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+    if address:
+        s.bind((address, int(port)))
+    else:
+        s.bind(('', int(port)))
+
+    return s
+
 def exec_command(cmd):
     message = {}
     string = ""
@@ -103,33 +126,13 @@ def parse(command, conn):
 
     return result
 
-def serve(port, address=None, sslparams=None):
+def serve(sock):
 
-    if sslparams["enabled"]:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        context.load_cert_chain(certfile=sslparams["pem"],
-                                password=sslparams["password"])
-
-        context.load_verify_locations(cafile=sslparams["pem"])
-        context.verify_mode = ssl.CERT_REQUIRED
-        s = context.wrap_socket(sock, server_side=True)
-    else:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    if address:
-        s.bind((address, int(port)))
-    else:
-        s.bind(('', int(port)))
-
-    s.listen(1)
+    sock.listen(1)
 
     execute = True
     while execute:
-        conn, addr = s.accept()
+        conn, addr = sock.accept()
 
         try:
             data = conn.recv(4096)
@@ -146,8 +149,6 @@ def serve(port, address=None, sslparams=None):
             except:
                 pass
             conn.close()
-
-    s.close()
 
 if __name__ == "__main__":
     #import pycallgraph
@@ -167,9 +168,13 @@ if __name__ == "__main__":
             "password": args.sslpass
         }
 
-        serve(args.port, args.listen, sslparams)
+        sock = get_socket(args.port, args.listen, sslparams)
+        serve(sock)
     else:
         sslparams = {"enabled": False}
-        serve(args.port, args.listen, sslparams)
+        sock = get_socket(args.port, args.listen, sslparams)
+        serve(sock)
+
+        sock.close()
     #pycallgraph.make_dot_graph('graph.png')
 
