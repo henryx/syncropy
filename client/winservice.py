@@ -1,3 +1,17 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+"""
+Copyright (C) 2012 Enrico Bianchi (enrico.bianchi@gmail.com)
+Project       Syncropy-ng
+Description   A backup system (client module)
+License       GPL version 2 (see GPL.txt for details)
+"""
+
+"""
+  NOTE: This file is based from http://stackoverflow.com/a/32440
+"""
+
 import win32serviceutil
 import win32service
 import win32event
