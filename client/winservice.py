@@ -6,8 +6,8 @@ import servicemanager
 import sclient
 
 class AppServerSvc (win32serviceutil.ServiceFramework):
-    _svc_name_ = "MementoClient"
-    _svc_display_name_ = "Memento Client"
+    _svc_name_ = "SyncropyClient"
+    _svc_display_name_ = "Syncropy Client"
 
     _socket = None
 
