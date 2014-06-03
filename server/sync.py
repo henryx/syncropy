@@ -101,6 +101,8 @@ def fs_get_data(cfg, section):
                 storage.fs_save(cfg, section, item)
 
 def fs_start(conf, process):
+    error = False
+
     def exec_remote_cmd(command):
         if not command == "":
             execmd ={
@@ -131,21 +133,22 @@ def fs_start(conf, process):
         except Exception as err:
             logger.error("Pre command for {0} failed: {1}".format(section["name"], err))
             logger.exception("Exception Traceback")
-            sys.exit(3)
+            error = True
 
-    with storage.Database(cfg) as dbs:
-        storage.db_del_dataset(dbs, section)
-    logger.debug(section["name"] + ": Database cleaned")
+    if not error:
+        with storage.Database(cfg) as dbs:
+            storage.db_del_dataset(dbs, section)
+        logger.debug(section["name"] + ": Database cleaned")
 
-    storage.fs_remove_dataset(cfg, section)
-    logger.debug(section["name"] + ": Dataset tree section removed")
+        storage.fs_remove_dataset(cfg, section)
+        logger.debug(section["name"] + ": Dataset tree section removed")
 
-    try:
-        fs_get_metadata(cfg, section)
-        fs_get_data(cfg, section)
-    except Exception as err:
-        logger.error("Sync for {0} failed: {1}".format(section["name"], err))
-        logger.exception("Exception Traceback")
+        try:
+            fs_get_metadata(cfg, section)
+            fs_get_data(cfg, section)
+        except Exception as err:
+            logger.error("Sync for {0} failed: {1}".format(section["name"], err))
+            logger.exception("Exception Traceback")
 
     if "post_command" in cfg[section["name"]]:
         try:
@@ -153,6 +156,5 @@ def fs_start(conf, process):
         except Exception as err:
             logger.error("Post command for {0} failed: {1}".format(section["name"], err))
             logger.exception("Exception Traceback")
-            sys.exit(3)
 
     logger.debug(section["name"] + ": Sync done")
