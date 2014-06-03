@@ -160,11 +160,11 @@ def fs_save(cfg, section, data, previous=False, conn=None):
     elif data["attrs"]["type"] == "file":
         if previous:
             if section["compressed"]:
-                source = os.sep.join([fs_compute_destination(cfg, section, True), data["name"]]) + ".compressed"
-                dest = os.sep.join([fs_compute_destination(cfg, section, False), data["name"]]) + ".compressed"
+                source = os.sep.join([fs_compute_destination(cfg, section, True), path]) + ".compressed"
+                dest = os.sep.join([fs_compute_destination(cfg, section, False), path]) + ".compressed"
             else:
-                source = os.sep.join([fs_compute_destination(cfg, section, True), data["name"]])
-                dest = os.sep.join([fs_compute_destination(cfg, section, False), data["name"]])
+                source = os.sep.join([fs_compute_destination(cfg, section, True), path])
+                dest = os.sep.join([fs_compute_destination(cfg, section, False), path])
 
             os.link(source, dest)
         else:
