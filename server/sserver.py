@@ -94,7 +94,7 @@ def go(sysargs):
         s = manage.Remove(cfg)
 
     s.grace = args.grace
-    s.execute()
+    s.execute(args.reload_dataset)
 
 if __name__ == "__main__":
     go(sys.argv[1:])

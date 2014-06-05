@@ -70,7 +70,7 @@ class Sync(Common):
         super(Sync, self).__init__(cfg)
         # NOTE: property dataset is not used in this class
 
-    def execute(self):
+    def execute(self, reload=False):
         sections = self._cfg.sections()
 
         for section in ["general", "dataset", "database"]:
@@ -78,10 +78,11 @@ class Sync(Common):
 
         dataset = storage.db_get_last_dataset(self._cfg, self._grace)
 
-        if (dataset + 1) > int(self._cfg["dataset"][self._grace]):
-            dataset = 1
-        else:
-            dataset = dataset + 1
+        if not reload:
+            if (dataset + 1) > int(self._cfg["dataset"][self._grace]):
+                dataset = 1
+            else:
+                dataset = dataset + 1
 
         logger = logging.getLogger("Syncropy")
         logger.info("Started " + self.grace + " backup for dataset " + str(dataset))
