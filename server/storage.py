@@ -151,22 +151,20 @@ def fs_save(cfg, section, data, previous=False, conn=None):
     else:
         item = data["name"]
 
-    path = os.sep.join([fs_compute_destination(cfg, section, False), item])
+    dest = os.sep.join([fs_compute_destination(cfg, section, False), item])
 
     if data["attrs"]["type"] == "directory":
-        os.makedirs(path)
+        os.makedirs(dest)
     elif data["attrs"]["type"] == "symlink":
-        os.symlink(data["attrs"]["link"], path)
+        os.symlink(data["attrs"]["link"], dest)
     elif data["attrs"]["type"] == "file":
         if previous:
-            if section["compressed"]:
-                source = os.sep.join([fs_compute_destination(cfg, section, True), path]) + ".compressed"
-                dest = os.sep.join([fs_compute_destination(cfg, section, False), path]) + ".compressed"
-            else:
-                source = os.sep.join([fs_compute_destination(cfg, section, True), path])
-                dest = os.sep.join([fs_compute_destination(cfg, section, False), path])
+            source = os.sep.join([fs_compute_destination(cfg, section, True), item])
 
-            os.link(source, dest)
+            if section["compressed"]:
+                os.link(source + ".compressed", dest + ".compressed")
+            else:
+                os.link(source, dest)
         else:
             cmdget = {
                 "context": "file",
@@ -178,7 +176,7 @@ def fs_save(cfg, section, data, previous=False, conn=None):
             conn.send(json.dumps(cmdget).encode("utf-8"))
             logger.debug(section["name"] + ": Transfer file " + data["name"])
 
-            with open(path, "wb") as destfile:
+            with open(dest, "wb") as destfile:
                 while True:
                     data = conn.recv(2048)
                     if not data:
@@ -186,7 +184,7 @@ def fs_save(cfg, section, data, previous=False, conn=None):
                     destfile.write(data)
 
             if section["compressed"]:
-                fs_compress_file(path)
+                fs_compress_file(dest)
 
 def fs_compress_file(path):
     with lzma.open(path + ".compressed", "w") as lzma_file, open(path, 'rb') as file_name:
