@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+# !/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 """
@@ -68,13 +68,13 @@ def exec_command(cmd):
             if p.stdout != None:
                 message["type"] = "stdout"
                 for item in p.stdout.readlines():
-                    string  = "\n".join([string, item.decode("utf-8")])
+                    string = "\n".join([string, item.decode("utf-8")])
 
                 message["message"] = string
             if p.stderr != None:
                 message["type"] = "stderr"
                 for item in p.stderr.readlines():
-                    string  = "\n".join([string, item.decode("utf-8")])
+                    string = "\n".join([string, item.decode("utf-8")])
 
                 message["message"] = string
         else:
@@ -127,7 +127,6 @@ def parse(command, conn):
     return result
 
 def serve(sock):
-
     sock.listen(1)
 
     execute = True
@@ -150,12 +149,8 @@ def serve(sock):
                 pass
             conn.close()
 
-if __name__ == "__main__":
-    #import pycallgraph
-
-    #pycallgraph.start_trace()
-
-    args = init_args().parse_args(sys.argv[1:])
+def go(sysargs):
+    args = init_args().parse_args(sysargs)
 
     if args.ssl:
         if args.sslpem is None:
@@ -176,5 +171,13 @@ if __name__ == "__main__":
         serve(sock)
 
         sock.close()
+
+if __name__ == "__main__":
+    #import pycallgraph
+
+    #pycallgraph.start_trace()
+
+    go(sys.argv[1:])
+
     #pycallgraph.make_dot_graph('graph.png')
 
