@@ -11,6 +11,7 @@ License       GPL version 2 (see GPL.txt for details)
 __author__ = "enrico"
 
 import argparse
+import configparser
 import files
 import json
 import logging
@@ -23,9 +24,7 @@ def init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
     args.add_argument("-p", "--port", required=True, metavar="<port>", help="Port which listen")
     args.add_argument("-l", "--listen", metavar="<address>", help="Address to listen")
-    args.add_argument("-S", "--ssl", action='store_const', const="ssl", help="Enable SSL support")
-    args.add_argument("--sslpem", metavar="<pemfile>", help="PEM file for SSL connection")
-    args.add_argument("--sslpass", metavar="<password>", help="Password for SSL connection")
+    args.add_argument("-S", "--ssl", metavar="<file>", help="Enable SSL support")
 
     return args
 
@@ -153,14 +152,13 @@ def go(sysargs):
     args = init_args().parse_args(sysargs)
 
     if args.ssl:
-        if args.sslpem is None:
-            print("SSL PEM file is missing")
-            sys.exit(2)
+        cfg = configparser.ConfigParser()
+        cfg.read(args.ssl)
 
         sslparams = {
             "enabled": True,
-            "pem": args.sslpem,
-            "password": args.sslpass
+            "pem": cfg.get("ssl", "key"),
+            "password": cfg.get("ssl", "password")
         }
 
         sock = get_socket(args.port, args.listen, sslparams)
