@@ -29,7 +29,7 @@ def init_args():
     return args
 
 def get_socket(port, address=None, sslparams=None):
-    if sslparams["enabled"]:
+    if sslparams:
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -164,8 +164,7 @@ def go(sysargs):
         sock = get_socket(args.port, args.listen, sslparams)
         serve(sock)
     else:
-        sslparams = {"enabled": False}
-        sock = get_socket(args.port, args.listen, sslparams)
+        sock = get_socket(args.port, args.listen)
         serve(sock)
 
         sock.close()
