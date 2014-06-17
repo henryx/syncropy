@@ -130,9 +130,8 @@ def serve(sock):
 
     execute = True
     while execute:
-        conn, addr = sock.accept()
-
         try:
+            conn, addr = sock.accept()
             data = conn.recv(4096)
             execute = parse(data, conn)
         except UnicodeDecodeError:
@@ -146,7 +145,11 @@ def serve(sock):
                 conn.shutdown(socket.SHUT_RDWR)
             except:
                 pass
-            conn.close()
+
+            try:
+                conn.close()
+            except:
+                pass
 
 def go(sysargs):
     args = init_args().parse_args(sysargs)
