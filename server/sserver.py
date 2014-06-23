@@ -90,11 +90,10 @@ def go(sysargs):
 
     if not args.del_dataset:
         s = manage.Sync(cfg)
+        s.grace = args.grace
+        s.execute(args.reload_dataset)
     else:
-        s = manage.Remove(cfg)
-
-    s.grace = args.grace
-    s.execute(args.reload_dataset)
+        manage.remove_dataset(cfg, args.grace, args.del_dataset)
 
 if __name__ == "__main__":
     go(sys.argv[1:])

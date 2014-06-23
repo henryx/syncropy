@@ -87,9 +87,12 @@ class Sync(Common):
         logger = logging.getLogger("Syncropy")
         logger.info("Started " + self.grace + " backup for dataset " + str(dataset))
 
-        with ProcessPoolExecutor(max_workers=5) as pool: # NOTE: maximum concurrent processes is hardcoded for convenience
+        # Remove old dataset
+        remove_dataset(self._cfg, self.grace, dataset)
+
+        with ProcessPoolExecutor(max_workers=5) as pool:  # NOTE: maximum concurrent processes is hardcoded for convenience
             for section in sections:
-                if self._cfg[section]["type"] == "file": # FIXME: useless?
+                if self._cfg[section]["type"] == "file":  # FIXME: useless?
                     section = {
                         "name": section,
                         "grace": self._grace,
@@ -102,9 +105,13 @@ class Sync(Common):
         storage.db_set_last_dataset(self._cfg, self.grace, dataset)
         logger.info("Backup ended")
 
-class Remove(Common):
-    def __init__(self, cfg):
-        super(Remove, self).__init__(cfg)
 
-    def execute(self):
-        pass
+def remove_dataset(cfg, grace, dataset):
+    logger = logging.getLogger("Syncropy")
+    logger.info("Removing " + grace + " backup for dataset " + str(dataset))
+    with storage.Database(cfg) as dbs:
+        storage.db_del_dataset(dbs, grace, dataset)
+    logger.debug("Database cleaned")
+
+    storage.fs_remove_dataset(cfg, grace, dataset)
+    logger.debug("Dataset " + str(dataset) + " tree for " + grace + " section removed")

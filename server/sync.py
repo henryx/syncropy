@@ -5,7 +5,6 @@ Project       Syncropy-ng
 Description   A backup system (server module)
 License       GPL version 2 (see GPL.txt for details)
 """
-import sys
 
 """
 NOTE:
@@ -136,13 +135,6 @@ def fs_start(conf, process):
             error = True
 
     if not error:
-        with storage.Database(cfg) as dbs:
-            storage.db_del_dataset(dbs, section)
-        logger.debug(section["name"] + ": Database cleaned")
-
-        storage.fs_remove_dataset(cfg, section)
-        logger.debug(section["name"] + ": Dataset tree section removed")
-
         try:
             fs_get_metadata(cfg, section)
             fs_get_data(cfg, section)

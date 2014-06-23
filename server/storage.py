@@ -192,8 +192,8 @@ def fs_compress_file(path):
             lzma_file.write(line)
     os.remove(path)
 
-def fs_remove_dataset(cfg, section, previous=False):
-    dataset = fs_compute_destination(cfg, section, previous)
+def fs_remove_dataset(cfg, grace, dataset):
+    dataset = os.sep.join([cfg["general"]["repository"], grace, str(dataset)])
     if os.path.exists(dataset):
         shutil.rmtree(dataset)
 
@@ -211,12 +211,12 @@ def db_set_last_dataset(cfg, grace, dataset):
         with closing(dbm.connection.cursor()) as cursor:
             cursor.execute("UPDATE status SET actual = ?, last_run = CURRENT_TIMESTAMP WHERE grace = ?", [dataset, grace])
 
-def db_del_dataset(dbm, section):
+def db_del_dataset(dbm, grace, dataset):
     with closing(dbm.connection.cursor()) as cursor:
-        cursor.execute("DELETE FROM attrs WHERE area = ? AND grace = ? AND dataset = ?",
-                       [section["name"], section["grace"], section["dataset"]])
-        cursor.execute("DELETE FROM acls WHERE area = ? AND grace = ? AND dataset = ?",
-                       [section["name"], section["grace"], section["dataset"]])
+        cursor.execute("DELETE FROM attrs WHERE grace = ? AND dataset = ?",
+                       [grace, dataset])
+        cursor.execute("DELETE FROM acls WHERE grace = ? AND dataset = ?",
+                       [grace, dataset])
 
 def db_save_attrs(dbm, section, data):
     # TODO: Add code for managing Windows systems
