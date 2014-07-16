@@ -335,9 +335,14 @@ class Receive(object):
     def filename(self):
         del self._filename
 
-    def data(self, socket):
+    def data(self, conn):
         # TODO: write code for receive data
-        pass
+        with open(self._filename, "wb") as destfile:
+            while True:
+                data = conn.recv(2048)
+                if not data:
+                    break
+                destfile.write(data)
 
 if __name__ == "__main__":
     pass

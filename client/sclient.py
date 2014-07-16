@@ -84,6 +84,37 @@ def exec_command(cmd):
     except subprocess.CalledProcessError as e:
         return (json.dumps({"result": "ko", "error": str(e)}) + "\n").encode("utf-8")
 
+def listfile(cmd, conn):
+    try:
+        res = files.List()
+        res.directory = cmd["command"]["directory"]
+        res.acl = cmd["command"]["acl"]
+
+        for item in res.get():
+            conn.send((item + "\n").encode("utf-8"))
+    except ValueError as ex:
+        conn.send((json.dumps({"result": "ko", "message": str(ex)}) + "\n").encode("utf-8"))
+
+def getfile(cmd, conn):
+    res = files.Send()
+    res.filename = cmd["command"]["filename"]
+
+    for data in res.data():
+        conn.send(data)
+
+def parsefile(cmd, conn):
+    if cmd["command"]["name"] == "list":
+        listfile(cmd, conn)
+    elif cmd["command"]["name"] == "get":
+        getfile(cmd, conn)
+    elif cmd["command"]["name"] == "put":
+        putfile(cmd, conn)
+    else:
+        conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
+
+def putfile(cmd, conn):
+    pass
+
 def parse(command, conn):
     try:
         cmd = json.loads(command.decode('utf-8'))
@@ -94,24 +125,7 @@ def parse(command, conn):
     result = True
     try:
         if cmd["context"] == "file":
-            if cmd["command"]["name"] == "list":
-                try:
-                    res = files.List()
-                    res.directory = cmd["command"]["directory"]
-                    res.acl = cmd["command"]["acl"]
-
-                    for item in res.get():
-                        conn.send((item + "\n").encode("utf-8"))
-                except ValueError as ex:
-                    conn.send((json.dumps({"result": "ko", "message": str(ex)}) + "\n").encode("utf-8"))
-            elif cmd["command"]["name"] == "get":
-                res = files.Send()
-                res.filename = cmd["command"]["filename"]
-
-                for data in res.data():
-                    conn.send(data)
-            else:
-                conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
+            parsefile(cmd, conn)
         elif cmd["context"] == "system":
             if cmd["command"]["name"] == "exec":
                 conn.send(exec_command(cmd["command"]["value"]))
