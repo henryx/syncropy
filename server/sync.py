@@ -30,6 +30,7 @@ import logging
 import pickle
 import socket
 import ssl
+import sys
 from contextlib import closing
 
 import storage
@@ -40,10 +41,14 @@ def get_remote_conn(cfg, section):
         sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
         context = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
-        context.load_cert_chain(
-            certfile=cfg[section]["sslpem"],
-            password=cfg[section]["sslpass"]
-        )
+        try:
+            context.load_cert_chain(
+                certfile=cfg[section]["sslpem"],
+                password=cfg[section]["sslpass"]
+            )
+        except FileNotFoundError:
+            logger.fatal("PEM key not found in " + cfg[section]["sslpem"])
+            sys.exit(4)
 
         conn = context.wrap_socket(sock)
     else:
