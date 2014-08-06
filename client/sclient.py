@@ -64,13 +64,13 @@ def exec_command(cmd):
 
         if sts != 0:
             message["result"] = "ko"
-            if p.stdout != None:
+            if p.stdout:
                 message["type"] = "stdout"
                 for item in p.stdout.readlines():
                     string = "\n".join([string, item.decode("utf-8")])
 
                 message["message"] = string
-            if p.stderr != None:
+            if p.stderr:
                 message["type"] = "stderr"
                 for item in p.stderr.readlines():
                     string = "\n".join([string, item.decode("utf-8")])
