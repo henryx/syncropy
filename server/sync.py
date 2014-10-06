@@ -55,8 +55,14 @@ def get_remote_conn(cfg, section):
         conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     logger.debug(section + ": Socket created")
 
-    conn.connect((cfg[section]["host"], int(cfg[section]["port"])))
-    logger.debug(section + ": Socket connected")
+    try:
+        conn.settimeout(30)
+        conn.connect((cfg[section]["host"], int(cfg[section]["port"])))
+        conn.settimeout(None)
+        logger.debug(section + ": Socket connected")
+    except socket.timeout:
+        logger.error(section + ": Timeout occurred")
+        sys.exit(5)
 
     return conn
 
