@@ -291,31 +291,13 @@ class List(object):
                 result["result"] = "ok"
                 yield json.dumps(result)
 
-class Send(object):
-    _filename = None
-
-    def __init__(self):
-        pass
-
-    @property
-    def filename(self):
-        return self._filename
-
-    @filename.setter
-    def filename(self, value):
-        self._filename = value
-
-    @filename.deleter
-    def filename(self):
-        del self._filename
-
-    def data(self):
-        with open(self._filename, "rb") as f:
-            while True:
-                data = f.read(2**20)
-                if not data:
-                    break
-                yield data
+def send_data(filename):
+    with open(filename, "rb") as f:
+        while True:
+            data = f.read(2**20)
+            if not data:
+                break
+            yield data
 
 class Receive(object):
     _filename = None

@@ -96,10 +96,7 @@ def listfile(cmd, conn):
         conn.send((json.dumps({"result": "ko", "message": str(ex)}) + "\n").encode("utf-8"))
 
 def getfile(cmd, conn):
-    res = files.Send()
-    res.filename = cmd["command"]["filename"]
-
-    for data in res.data():
+    for data in files.send_data(cmd["command"]["filename"]):
         conn.send(data)
 
 def parsefile(cmd, conn):
