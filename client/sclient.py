@@ -12,13 +12,15 @@ __author__ = "enrico"
 
 import argparse
 import configparser
-import files
 import json
 import logging
 import socket
 import ssl
 import subprocess
 import sys
+
+import files
+
 
 def init_args():
     args = argparse.ArgumentParser(description="Syncropy-client")
@@ -27,6 +29,7 @@ def init_args():
     args.add_argument("-S", "--ssl", metavar="<file>", help="Enable SSL support")
 
     return args
+
 
 def get_socket(port, address=None, sslparams=None):
     if sslparams:
@@ -50,6 +53,7 @@ def get_socket(port, address=None, sslparams=None):
         s.bind(('', int(port)))
 
     return s
+
 
 def exec_command(cmd):
     message = {}
@@ -84,33 +88,6 @@ def exec_command(cmd):
     except subprocess.CalledProcessError as e:
         return (json.dumps({"result": "ko", "error": str(e)}) + "\n").encode("utf-8")
 
-def listfile(cmd, conn):
-    try:
-        res = files.List()
-        res.directory = cmd["command"]["directory"]
-        res.acl = cmd["command"]["acl"]
-
-        for item in res.get():
-            conn.send((item + "\n").encode("utf-8"))
-    except ValueError as ex:
-        conn.send((json.dumps({"result": "ko", "message": str(ex)}) + "\n").encode("utf-8"))
-
-def getfile(cmd, conn):
-    for data in files.send_data(cmd["command"]["filename"]):
-        conn.send(data)
-
-def parsefile(cmd, conn):
-    if cmd["command"]["name"] == "list":
-        listfile(cmd, conn)
-    elif cmd["command"]["name"] == "get":
-        getfile(cmd, conn)
-    elif cmd["command"]["name"] == "put":
-        putfile(cmd, conn)
-    else:
-        conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
-
-def putfile(cmd, conn):
-    files.receive_data(conn, cmd["command"]["filename"])
 
 def parse(command, conn):
     try:
@@ -135,6 +112,39 @@ def parse(command, conn):
         conn.send((json.dumps({"result": "ko", "message": "Malformed command"}) + "\n").encode("utf-8"))
 
     return result
+
+
+def parsefile(cmd, conn):
+    if cmd["command"]["name"] == "list":
+        listfile(cmd, conn)
+    elif cmd["command"]["name"] == "get":
+        getfile(cmd, conn)
+    elif cmd["command"]["name"] == "put":
+        putfile(cmd, conn)
+    else:
+        conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
+
+
+def listfile(cmd, conn):
+    try:
+        res = files.List()
+        res.directory = cmd["command"]["directory"]
+        res.acl = cmd["command"]["acl"]
+
+        for item in res.get():
+            conn.send((item + "\n").encode("utf-8"))
+    except ValueError as ex:
+        conn.send((json.dumps({"result": "ko", "message": str(ex)}) + "\n").encode("utf-8"))
+
+
+def getfile(cmd, conn):
+    for data in files.send_data(cmd["command"]["filename"]):
+        conn.send(data)
+
+
+def putfile(cmd, conn):
+    files.receive_data(conn, cmd["command"]["filename"])
+
 
 def serve(sock):
     sock.listen(1)
@@ -162,6 +172,7 @@ def serve(sock):
             except:
                 pass
 
+
 def go(sysargs):
     args = init_args().parse_args(sysargs)
 
@@ -183,10 +194,11 @@ def go(sysargs):
 
         sock.close()
 
-if __name__ == "__main__":
-    #import pycallgraph
 
-    #pycallgraph.start_trace()
+if __name__ == "__main__":
+    # import pycallgraph
+
+    # pycallgraph.start_trace()
 
     go(sys.argv[1:])
 
