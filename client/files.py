@@ -299,32 +299,14 @@ def send_data(filename):
                 break
             yield data
 
-class Receive(object):
-    _filename = None
-
-    def __init__(self):
-        pass
-
-    @property
-    def filename(self):
-        return self._filename
-
-    @filename.setter
-    def filename(self, value):
-        self._filename = value
-
-    @filename.deleter
-    def filename(self):
-        del self._filename
-
-    def data(self, conn):
-        # TODO: write code for receive data
-        with open(self._filename, "wb") as destfile:
-            while True:
-                data = conn.recv(2048)
-                if not data:
-                    break
-                destfile.write(data)
+def receive_data(conn, filename):
+    # TODO: write code for receive data
+    with open(filename, "wb") as destfile:
+        while True:
+            data = conn.recv(2048)
+            if not data:
+                break
+            destfile.write(data)
 
 if __name__ == "__main__":
     pass
