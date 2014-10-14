@@ -110,7 +110,7 @@ def parsefile(cmd, conn):
         conn.send((json.dumps({"result": "ko", "message": "Command not found"}) + "\n").encode("utf-8"))
 
 def putfile(cmd, conn):
-    pass
+    files.receive_data(conn, cmd["command"]["filename"])
 
 def parse(command, conn):
     try:
