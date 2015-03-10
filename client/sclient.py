@@ -196,11 +196,19 @@ def go(sysargs):
 
 
 if __name__ == "__main__":
-    # import pycallgraph
+    #import tracemalloc
 
-    # pycallgraph.start_trace()
+    #tracemalloc.start()
+    #try:
+        go(sys.argv[1:])
+    #except:
+    #    pass
 
-    go(sys.argv[1:])
+    #snapshot = tracemalloc.take_snapshot()
+    #top_stats = snapshot.statistics('lineno')
 
-    #pycallgraph.make_dot_graph('graph.png')
+    #print("[ Top 10 ]")
+    #for stat in top_stats[:10]:
+    #    print(stat)
+
 
