@@ -1,7 +1,7 @@
 Syncropy backup system
 ----------------------
 
-Link: https://bitbucket.org/ebianchi/syncropy
+Link: https://github.com/henryx/syncropy
 
 Description:
 ------------
