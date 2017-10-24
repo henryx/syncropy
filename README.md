@@ -43,21 +43,21 @@ Usage:
 Usage is simpliest:
 
 On client:
-
+```
 $ python3 sclient.py -p <portnumber>
-
-Where <portnumber> is the TCP port number where client listen.
+```
+Where `<portnumber>` is the TCP port number where client listen.
 For other options, use -h switch.
 
 On server:
-
+```
 $ python sserver.py --cfg=<cfgfile> -H # hour backup
 $ python sserver.py --cfg=<cfgfile> -D # day backup
 $ python sserver.py --cfg=<cfgfile> -W # week backup
 $ python sserver.py --cfg=<cfgfile> -M # month backup
-
-Where <cfgfile> is a file structured like the backup.cfg reported in the
-archive. For other options, use -h switch. Some notes:
+```
+Where `<cfgfile>` is a file structured like the `backup.cfg` reported in the
+archive. For other options, use `-h` switch. Some notes:
 
  - It is possible to have multiple configuration files, where each file has
    different parameters.
@@ -66,7 +66,7 @@ archive. For other options, use -h switch. Some notes:
    to set any number of sections, one per client.
 
 This is an example of configuration file:
-
+```
 [general]
 repository = /full/path/to/store/backups
 log_file = syncropy-ng.log
@@ -96,6 +96,7 @@ path = /full/path/to/backup
 acl = yes
 pre_command =
 post_command =
+```
 
 SSL:
 ---
@@ -103,14 +104,14 @@ SSL:
 If you want use the SSL connection, you need:
 
  - Create SSL certificate with these commands:
-
+```
     openssl genrsa -des3 -out syncropy.key 2048
     openssl req -new -key syncropy.key -out syncropy.csr
     openssl x509 -req -days 365 -in syncropy.csr -signkey syncropy.key -out syncropy.crt
     cat syncropy.key syncropy.crt > syncropy.pem
     openssl gendh >> syncropy.pem
-
-  - Launch client with -S, --sslpem and --sslpass options (see -h switch for more information).
+```
+  - Launch client with `-S`, `--sslpem` and `--sslpass` options (see `-h` switch for more information).
   - Configure server for use SSL with the same certificate.
 
 Caveats:
